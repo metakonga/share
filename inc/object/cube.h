@@ -29,7 +29,10 @@ public:
 	VEC3D cube_size() const { return size; }
 	plane planes_data(int i) const { return planes[i]; }
 
+	static unsigned int Number() { return nCube; }
+
 private:
+	static unsigned int nCube;
 	VEC3D ori;
 	VEC3D min_p;
 	VEC3D max_p;

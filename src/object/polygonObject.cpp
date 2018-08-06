@@ -5,9 +5,11 @@
 #include <QFile>
 #include <QTextStream>
 
+unsigned int polygonObject::nPolygonObject = 0;
+
 polygonObject::polygonObject()
 	: object()
-	, h_poly(NULL)
+	, local_vertice(NULL)
 	//, d_poly(NULL)
 	, h_sph(NULL)
 	, d_sph(NULL)
@@ -27,7 +29,7 @@ polygonObject::polygonObject()
 
 polygonObject::polygonObject(QString _name, geometry_use _roll)
 	: object(_name, POLYGON_SHAPE, _roll)
-	, h_poly(NULL)
+	, local_vertice(NULL)
 	//, d_poly(NULL)
 	, h_sph(NULL)
 	, d_sph(NULL)
@@ -50,7 +52,7 @@ polygonObject::polygonObject(QString _name, geometry_use _roll)
 
 polygonObject::polygonObject(const polygonObject& _poly)
 	: object(_poly)
-	, h_poly(NULL)
+	, local_vertice(NULL)
 	//, d_poly(NULL)
 	, h_sph(NULL)
 	, d_sph(NULL)
@@ -64,18 +66,18 @@ polygonObject::polygonObject(const polygonObject& _poly)
 	, nindex(_poly.numIndex())
 	, maxRadii(_poly.maxRadius())
 	, filePath(_poly.meshDataFile())
-	, org(_poly.getOrigin())
+	//, org(_poly.getOrigin())
 {
 // 	if (_poly.hostMassInfo())
 // 	{
 // 		h_mass = new host_polygon_mass_info;
 // 		memcpy(h_mass, _poly.hostMassInfo(), sizeof(host_polygon_mass_info));
 // 	}
-	if (_poly.hostPolygonInfo())
-	{
-		h_poly = new host_polygon_info[nindex];
-		memcpy(h_poly, _poly.hostPolygonInfo(), sizeof(host_polygon_info) * nindex);
-	}
+// 	if (_poly.hostPolygonInfo())
+// 	{
+// 		h_poly = new host_polygon_info[nindex];
+// 		memcpy(h_poly, _poly.hostPolygonInfo(), sizeof(host_polygon_info) * nindex);
+// 	}
 	if (_poly.hostSphereSet())
 	{
 		h_sph = new VEC4D[nindex];
@@ -108,13 +110,14 @@ polygonObject::~polygonObject()
 	if (vertice) delete[] vertice; vertice = NULL;
 	if (indice) delete[] indice; indice = NULL;
 	if (h_sph) delete[] h_sph; h_sph = NULL;
-	if (h_poly) delete[] h_poly; h_poly = NULL;
+	if (local_vertice) delete[] local_vertice; local_vertice = NULL;
 	if (normals) delete[] normals; normals = NULL;
 	if (id) delete[] id; id = NULL;
 	//if (h_mass) delete h_mass; h_mass = NULL;
 	//if (d_mass) checkCudaErrors(cudaFree(h_mass)); h_mass = NULL;
 	if (d_sph) checkCudaErrors(cudaFree(d_sph)); d_sph = NULL;
 	//if (d_poly) checkCudaErrors(cudaFree(d_poly)); d_poly = NULL;
+	nPolygonObject--;
 }
 
 bool polygonObject::define(import_shape_type tm, QString file)
@@ -128,7 +131,7 @@ bool polygonObject::define(import_shape_type tm, QString file)
 		fromMS3DASCII(qts);
 		break;
 	}
-
+	nPolygonObject++;
 	return true;
 }
 
@@ -145,6 +148,7 @@ void polygonObject::fromMS3DASCII(QTextStream& qs)
 	QString _name = ch.mid(begin + 1, end - 1);
 	qs >> ch >> ch >> nvertex;
 	vertice = new VEC3D[nvertex];
+	local_vertice = new VEC3D[nvertex];
 	id = new unsigned int[nvertex];
 	double x_max = FLT_MIN; double x_min = FLT_MAX;
 	double y_max = FLT_MIN; double y_min = FLT_MAX;
@@ -179,13 +183,16 @@ void polygonObject::fromMS3DASCII(QTextStream& qs)
 		if (z_max < vertice[k].z) z_max = vertice[k].z;
 		real_nvert++;
 	}
+	com = VEC3D(0.5 * (x_min + x_max), 0.5 * (y_min + y_max), 0.5 * (z_min + z_max));
+	com = 0.001 * com;
 	for (unsigned int i = 0; i < real_nvert; i++)
 	{
 		vertice[i].x *= 0.001;
 		vertice[i].y *= 0.001;
 		vertice[i].z *= 0.001;
+		local_vertice[i] = vertice[i] - com;
 	}
-	org = VEC3D(0.5 * (x_min + x_max), 0.5 * (y_min + y_max), 0.5 * (z_min + z_max));
+	
 	qs >> ui;
 	VEC3D* nid = new VEC3D[ui];
 	for (unsigned int i = 0; i < ui; i++)
@@ -249,7 +256,7 @@ void polygonObject::fromMS3DASCII(QTextStream& qs)
 // 		normals[i] = normals[i] / normals[i].length();
 // 	}
 	delete[] nid;
-	h_poly = new host_polygon_info[nindex];
+//	h_poly = new host_polygon_info[nindex];
 	//h_loc_poly = new host_polygon_info[nindex];
 	h_sph = new VEC4D[nindex];
 	//h_loc_sph = new VEC4D[nindex];
@@ -265,7 +272,7 @@ void polygonObject::fromMS3DASCII(QTextStream& qs)
 		po.W = po.R - po.P;
 		po.N = po.V.cross(po.W);
 		po.N = po.N / po.N.length();
-		h_poly[i] = po;
+//		h_poly[i] = po;
 		VEC3D M1 = (po.Q + po.P) / 2;
 		VEC3D M2 = (po.R + po.P) / 2;
 		VEC3D D1 = po.N.cross(po.V);

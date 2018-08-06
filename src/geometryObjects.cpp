@@ -3,11 +3,6 @@
 #include "Objects.h"
 #include "database.h"
 
-unsigned int geometryObjects::nCube = 0;
-unsigned int geometryObjects::nPlane = 0;
-unsigned int geometryObjects::nCylinder = 0;
-unsigned int geometryObjects::nPolyObject = 0;
-
 geometryObjects::geometryObjects()
 {
 
@@ -124,7 +119,6 @@ cube* geometryObjects::makeCube(
 		<< "END_POINT " << end.x << " " << end.y << " " << end.z << endl
 		<< "MATERIAL " << e << " " << p << " " << d << " " << s << endl;
 	logs[c->Name()] = log;
-
 	return c;
 }
 
@@ -166,7 +160,7 @@ polygonObject* geometryObjects::makePolygonObject
 	po->define(t, file);
 	po->setMaterial(mt, e, d, p, s);
 	objs[_nm] = po;
-	GLWidget::GLObject()->makePolygonObject(po);
+	GLWidget::GLObject()->makePolygonObject(po->Name(), t, file);
 	database::DB()->addChild(database::POLYGON_ROOT, po->Name());
 
 	QString log;

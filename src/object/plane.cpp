@@ -2,6 +2,8 @@
 #include "mphysics_cuda_dec.cuh"
 #include "pointMass.h"
 
+unsigned int plane::nPlane = 0;
+
 plane::plane()
 	:object()
 	, l1(0)
@@ -37,6 +39,8 @@ plane::plane(const plane& _plane)
 
 plane::~plane()
 {
+	if (!name.isEmpty())
+		nPlane--;
 //	if (dpi) checkCudaErrors(cudaFree(dpi));
 }
 
@@ -65,6 +69,8 @@ bool plane::define(VEC3D& _xw, VEC3D& _pa, VEC3D& _pc, VEC3D& _pb)
 	u1 = pa / l1;
 	u2 = pb / l2;
 	uw = u1.cross(u2);
+	com = xw + (l1 * u1) + (l2 * u2);
+	nPlane++;
 
 	return true;
 }

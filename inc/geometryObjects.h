@@ -33,11 +33,6 @@ public:
 		(import_shape_type t, QString file, geometry_use gu
 		,material_type mt, double e, double p, double d, double s);
 
-	static unsigned int nCube;
-	static unsigned int nPlane;
-	static unsigned int nCylinder;
-	static unsigned int nPolyObject;
-
 private:
 	QMap<QString, QString> logs;
 	QMap<QString, object*> objs;

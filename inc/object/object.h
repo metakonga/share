@@ -19,6 +19,7 @@ public:
 	virtual void update(pointMass* pm){};
 	virtual void Save(QTextStream& ts){};
 
+	VEC3D Center() { return com; }
 	unsigned int ID() const { return id; }
 	QString Name() const { return name; }
 	geometry_type ObjectType() const { return obj_type; }
@@ -38,6 +39,7 @@ protected:
 	static unsigned int count;
 	unsigned int id;	
 	QString name;
+	VEC3D com;
 	geometry_use roll_type;
 	geometry_type obj_type;
 	material_type mat_type;

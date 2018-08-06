@@ -19,6 +19,10 @@ public:
 	bool define(import_shape_type t, QString file);
 	void updateDeviceFromHost();
 
+	VEC3D Vertex0(unsigned int i) { return vertice[indice[i].x]; }
+	VEC3D Vertex1(unsigned int i) { return vertice[indice[i].y]; }
+	VEC3D Vertex2(unsigned int i) { return vertice[indice[i].z]; }
+
 	QString meshDataFile() const { return filePath; }
 	unsigned int numVertex() const { return nvertex; }
 	unsigned int numIndex() const { return nindex; }
@@ -30,25 +34,27 @@ public:
 	//device_polygon_mass_info* deviceMassInfo() const { return d_mass; }
 	VEC4D* hostSphereSet() const { return h_sph; }
 	double* deviceSphereSet() const { return d_sph; }
-	host_polygon_info* hostPolygonInfo() const { return h_poly; }
+///	host_polygon_info* hostPolygonInfo() const { return h_poly; }
 	//device_polygon_info* devicePolygonInfo() const { return d_poly; }
-	VEC3D getOrigin() const { return org; }
+
+	static unsigned int Number() { return nPolygonObject; }
 
 private:
 	void fromMS3DASCII(QTextStream& file);
 
 private:
+	static unsigned int nPolygonObject;
 	unsigned int nvertex;
 	unsigned int nindex;
 	double maxRadii;
 	unsigned int *id;
-	VEC3D org;
 	VEC3D *vertice;
 	VEC3UI *indice;
 	VEC3D *normals;
 	VEC4D *h_sph;
+	VEC3D *local_vertice;
 	double *d_sph;
-	host_polygon_info* h_poly;
+/*	host_polygon_info* h_poly;*/
 //	device_polygon_info* d_poly;
 	host_polygon_mass_info* h_mass;
 //	device_polygon_mass_info* d_mass;

@@ -30,7 +30,10 @@ public:
 	VEC3D W3() const { return w3; }
 	VEC3D W4() const { return w4; }
 
+	static unsigned int Number() { return nPlane; }
+
 private:
+	static unsigned int nPlane;
 	double l1, l2;
 	VEC3D minp;
 	VEC3D maxp;

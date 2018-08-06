@@ -1,11 +1,13 @@
 #include "cube.h"
 #include "mphysics_cuda_dec.cuh"
 
+unsigned int cube::nCube = 0;
+
 cube::cube(QString& _name, geometry_use _roll)
 	: object(_name, CUBE, _roll)
 	, planes(NULL)
 {
-
+	
 }
 
 cube::cube(const cube& _cube)
@@ -24,6 +26,7 @@ cube::cube(const cube& _cube)
 cube::~cube()
 {
 	if (planes) delete[] planes; planes = NULL;
+	nCube--;
 }
 
 // void cube::cuAllocData(unsigned int _np)
@@ -55,7 +58,7 @@ bool cube::define(VEC3D& min, VEC3D& max)
 		planes = new plane[6];
 	min_p = min;
 	max_p = max;
-
+	com = 0.5 * (min + max);
 	size.x = (max_p - VEC3D(min_p.x, max_p.y, max_p.z)).length();
 	size.y = (max_p - VEC3D(max_p.x, min_p.y, max_p.z)).length();
 	size.z = (max_p - VEC3D(max_p.x, max_p.y, min_p.z)).length();
@@ -66,7 +69,7 @@ bool cube::define(VEC3D& min, VEC3D& max)
 	planes[3].define(min_p, min_p + VEC3D(size.x, 0, 0), min_p + VEC3D(0, size.y, 0));
 	planes[4].define(min_p + VEC3D(0, 0, size.z), min_p + VEC3D(0, size.y, size.z), min_p + VEC3D(size.x, 0, size.z));
 	planes[5].define(min_p + VEC3D(0, size.y, 0), min_p + VEC3D(size.x, size.y, 0), min_p + VEC3D(0, size.y, size.z));
-
+	nCube++;
 	//save_shape_data();
 	return true;
 }
