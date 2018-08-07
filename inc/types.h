@@ -162,6 +162,7 @@ typedef struct
 
 typedef struct
 {
+	int id;
 	VEC3D P;
 	VEC3D Q;
 	VEC3D R;

@@ -16,24 +16,27 @@ public:
 	//virtual void cuAllocData(unsigned int _np);
 	virtual void update(pointMass* pm);
 	virtual void Save(QTextStream& ts);
-	bool define(import_shape_type t, QString file);
+	bool define(unsigned int ntriangle, double* vList, unsigned int *iList);
 	void updateDeviceFromHost();
 
-	VEC3D Vertex0(unsigned int i) { return vertice[indice[i].x]; }
-	VEC3D Vertex1(unsigned int i) { return vertice[indice[i].y]; }
-	VEC3D Vertex2(unsigned int i) { return vertice[indice[i].z]; }
+// 	VEC3D Vertex0(unsigned int i) { return vertice[indice[i].x]; }
+// 	VEC3D Vertex1(unsigned int i) { return vertice[indice[i].y]; }
+// 	VEC3D Vertex2(unsigned int i) { return vertice[indice[i].z]; }
 
 	QString meshDataFile() const { return filePath; }
-	unsigned int numVertex() const { return nvertex; }
-	unsigned int numIndex() const { return nindex; }
+// 	unsigned int numVertex() const { return nvertex; }
+// 	unsigned int numIndex() const { return nindex; }
 	double maxRadius() const { return maxRadii; }
-	VEC3D* vertexSet() const { return vertice; }
-	VEC3D* normalSet() const { return normals; }
-	VEC3UI* indexSet() const { return indice; }
-	host_polygon_mass_info* hostMassInfo() const { return h_mass; }
+// 	VEC3D* vertexSet() const { return vertice; }
+// 	VEC3D* normalSet() const { return normals; }
+// 	VEC3UI* indexSet() const { return indice; }
+//	host_polygon_mass_info* hostMassInfo() const { return h_mass; }
+	unsigned int NumTriangle() const { return ntriangle; }
+	double* VertexList() { return vertexList; }
+	unsigned int* IndexList() { return indexList; }
 	//device_polygon_mass_info* deviceMassInfo() const { return d_mass; }
-	VEC4D* hostSphereSet() const { return h_sph; }
-	double* deviceSphereSet() const { return d_sph; }
+	//VEC4D* hostSphereSet() const { return h_sph; }
+//	double* deviceSphereSet() const { return d_sph; }
 ///	host_polygon_info* hostPolygonInfo() const { return h_poly; }
 	//device_polygon_info* devicePolygonInfo() const { return d_poly; }
 
@@ -44,19 +47,22 @@ private:
 
 private:
 	static unsigned int nPolygonObject;
-	unsigned int nvertex;
-	unsigned int nindex;
+//	unsigned int nvertex;
+//	unsigned int nindex;
+	unsigned int ntriangle;
 	double maxRadii;
-	unsigned int *id;
-	VEC3D *vertice;
-	VEC3UI *indice;
-	VEC3D *normals;
-	VEC4D *h_sph;
-	VEC3D *local_vertice;
-	double *d_sph;
-/*	host_polygon_info* h_poly;*/
+	double *vertexList;
+	unsigned int *indexList;
+//	unsigned int *id;
+	//VEC3D *vertice;
+	//VEC3UI *indice;
+	//VEC3D *normals;
+	//VEC4D *h_sph;
+	//VEC3D *local_vertice;
+	//double *d_sph;
+	//host_polygon_info* h_poly;
 //	device_polygon_info* d_poly;
-	host_polygon_mass_info* h_mass;
+//	host_polygon_mass_info* h_mass;
 //	device_polygon_mass_info* d_mass;
 
 	QString filePath;

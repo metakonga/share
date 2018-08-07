@@ -30,12 +30,13 @@ public:
 		double e, double p, double d, double s);
 	cylinder* makeCylinder(QString _name, double e, double p, double d, geometry_use _roll);
 	polygonObject* makePolygonObject
-		(import_shape_type t, QString file, geometry_use gu
-		,material_type mt, double e, double p, double d, double s);
+		(QString _nm, geometry_use gu, QString file, import_shape_type t, unsigned int ntri, float* vertexList, 
+		unsigned int* indexList ,material_type mt, double e, double p, double d, double s);
 
 private:
 	QMap<QString, QString> logs;
 	QMap<QString, object*> objs;
+	QMap<int, polygonObject*> pobjs;
 };
 
 #endif
