@@ -24,8 +24,10 @@ public:
 	mbd_model(QString _name);
 	virtual ~mbd_model();
 
-	rigidBody* createRigidBody(QString _name);
-	rigidBody* createRigidBody(QTextStream& qts);
+//	rigidBody* createRigidBody(QString _name);
+	rigidBody* createRigidBody(
+		QString _name, double mass, VEC3D piner, VEC3D siner, 
+		VEC3D p, EPD ep = EPD(1.0, 0.0, 0.0, 0.0));
 	pointMass* Ground();
 	kinematicConstraint* createKinematicConstraint(
 		QString _name, kinematicConstraint::Type kt, 
@@ -57,14 +59,19 @@ public:
 
 	void set2D_Mode(bool b);
 	bool mode2D();
-	QString& modelPath() { return model_path; }
-	QString& modelName() { return name; }
+	void setMBDModelName(QString _n) { mbd_model_name = _n; }
+	//QString& modelPath() { return model_path; }
+	QString& modelName() { return mbd_model_name; }
 	QMap<QString, kinematicConstraint*>& kinConstraint() { return consts; }
 	QMap<QString, pointMass*>& pointMasses() { return masses; }
 	QMap<QString, forceElement*>& forceElements() { return forces; }
 	QMap<QString, cableConstraint*>& cableConstraints() { return cables; }
 	QMap<QString, gearConstraint*>& gearConstraints() { return gears; }
 	QMap<QString, artificialCoordinate*>& artificialCoordinates() { return acoordinates; }
+
+	void Open(QTextStream& qts);
+	void Save(QTextStream& qts);
+
 	void exportPointMassResultData2TXT();
 	void exportReactionForceResultData2TXT();
 	void loadPointMassResultDataFromTXT();
@@ -78,10 +85,12 @@ protected:
 	pointMass *ground;
 	VEC3D grav;
 
-	QString model_path;
-	QString name;
+	//QString model_path;
+	QString mbd_model_name;
 	bool is2D;
 
+	QMap<QString, QString> body_logs;
+	QMap<QString, QString> other_logs;
 	QMap<QString, pointMass*> masses;
 	QMap<QString, kinematicConstraint*> consts;
 	QMap<QString, cableConstraint*> cables;

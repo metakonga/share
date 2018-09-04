@@ -8,6 +8,9 @@
 #include "particleManager.h"
 #include "contactManager.h"
 
+#include "FullCarModel.hpp"
+#include "SliderCrank3D.hpp"
+
 class modelManager
 {
 public:
@@ -43,6 +46,9 @@ public:
 
 	void setOnAirModel(modelType t, QString& n);
 	void setDatabase(database* _db) { db = _db; }
+
+	bool defineFullCarModel();
+	void defineSliderCrank3D();
 
 private:
 	QMap<QString, geometryObjects*> objs;

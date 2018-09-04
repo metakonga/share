@@ -1,20 +1,17 @@
 #ifndef PLANE_H
 #define PLANE_H
 
-#include "object.h"
+#include "pointMass.h"
 
 struct device_plane_info;
 
-class plane : public object
+class plane : public pointMass
 {
 public:
 	plane();
 	plane(QString& _name, geometry_use _roll);
 	plane(const plane& _plane);
 	virtual ~plane();
-
-	virtual void update(pointMass* pm);
-	virtual void Save(QTextStream& ts);
 
 	bool define(VEC3D& _xw, VEC3D& _pa, VEC3D& _pc, VEC3D& _pb);
 	bool define(VEC3D& _xw, VEC3D& _pa, VEC3D& _pb);
@@ -47,8 +44,6 @@ private:
 	VEC3D w2;
 	VEC3D w3;
 	VEC3D w4;
-
-
 };
 
 #endif

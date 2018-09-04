@@ -3,7 +3,7 @@
 
 #include <QString>
 #include <QTextStream>
-#include <algebraMath.h>
+#include "algebraMath.h"
 #include "pointMass.h"
 //#include "resultStorage.h"
 //#include <mphysics_types.h>
@@ -15,7 +15,7 @@ class mbd_model;
 class kinematicConstraint
 {
 public:
-	enum Type{ FIXED = 0, SPHERICAL, REVOLUTE, TRANSLATIONAL, UNIVERSAL, CABLE, GEAR };
+	enum Type{ FIXED = 0, SPHERICAL, REVOLUTE, TRANSLATIONAL, UNIVERSAL, CABLE, GEAR, COINCIDE };
 
 	kinematicConstraint();
 	kinematicConstraint(QString _nm);
@@ -27,8 +27,8 @@ public:
 	virtual ~kinematicConstraint();
 
 	QString name() const { return nm; }
-	pointMass* iMass() const { return i; }
-	pointMass* jMass() const { return j; }
+	pointMass* iMass() const { return ib; }
+	pointMass* jMass() const { return jb; }
 	VEC3D axis() const { return ax; }
 	Type constType() const { return type; }
 	VEC3D sp_i() const { return spi; }
@@ -61,15 +61,15 @@ public:
 
 
 	virtual void calculation_reaction_force(double ct) = 0;
-	virtual void constraintEquation2D(double m, double* rhs) = 0;
-	virtual void constraintJacobian2D(SMATD& cjaco) = 0;
+	virtual void constraintEquation(double m, double* rhs) = 0;
+	virtual void constraintJacobian(SMATD& cjaco) = 0;
 
 	//virtual void constraintEquation();
 
 protected:
 	QString nm;
-	pointMass* i;
-	pointMass* j;
+	pointMass* ib;
+	pointMass* jb;
 //	pointMass* k;
 	double* lm;
 	VEC3D ax;

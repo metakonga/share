@@ -13,15 +13,15 @@ public:
 	virtual ~cableConstraint();
 
 	void setApplyCableForceMass(pointMass* acm);
-	void constraintEquation(int sr, double* rhs, double mul);
-	void constraintJacobian(int sr, SMATD& cjaco);
+	//void constraintEquation(int sr, double* rhs, double mul);
+	//void constraintJacobian(int sr, SMATD& cjaco);
 	void saveCableConstraintData(QTextStream& qts);
 	void updateCableInitLength();
 
 	void calculation_reaction_force2body();
 	virtual void calculation_reaction_force(double ct);
-	virtual void constraintEquation2D(double m, double* rhs) {};
-	virtual void constraintJacobian2D(SMATD& cjaco){};
+	virtual void constraintEquation(double m, double* rhs);
+	virtual void constraintJacobian(SMATD& cjaco);
 
 private:
 	double f_c;

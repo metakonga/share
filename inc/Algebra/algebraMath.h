@@ -4,7 +4,7 @@
 #include "vectorTypes.h"
 
 #define sign(a) a <= 0 ? (a == 0 ? 0 : -1) : 1
-
+#define DEG2RAD 0.017453292519943
 #define POINTER(a) &a(0)
 #define POINTER3(a) &(a.x)
 #define POINTER4(a) &(a.x)
@@ -29,6 +29,8 @@ inline T* resizeMemory(T* d, unsigned int pn, unsigned int fn)
 	delete [] td;
 	return d;
 }
+
+
 
 inline
 MAT44D transpose(const MAT34D& m4x3, MAT34D& m3x4)
@@ -254,6 +256,22 @@ inline double asin2(double r, int& k)
 	}
 	rst = pow(s, k) * asin(rad) + /*sign(r) * 0.5 * */s * M_PI * k;
 	return rst;
+}
+
+inline
+MAT33D bryantAngle(double x, double y, double z)
+{
+	return MAT33D(
+		cos(y) * cos(z), -cos(y) * sin(z), sin(y),
+		cos(x)*sin(z) + sin(x) * sin(y) * cos(z), cos(x) * cos(z) - sin(x) * sin(y) * sin(z), -sin(x) * cos(y),
+		sin(x) * sin(z) - cos(x) * sin(y) * cos(z), sin(x) * cos(z) + cos(x) * sin(y) * sin(z), cos(x) * cos(y)
+		);
+}
+
+inline
+VEC3D local2global_bryant(VEC3D ang, VEC3D v)
+{
+	return bryantAngle(ang.x, ang.y, ang.z) * v;
 }
 
 #endif

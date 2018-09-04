@@ -1,19 +1,16 @@
 #ifndef CUBE_H
 #define CUBE_H
 
-#include "object.h"
+#include "pointMass.h"
 #include "plane.h"
 
-class cube : public object
+class cube : public pointMass
 {
 public:
 	cube(){}
 	cube(QString& _name, geometry_use _roll);
 	cube(const cube& _cube);
 	virtual ~cube();
-
-	virtual void update(pointMass* pm){};
-	virtual void save_object_data(QTextStream& ts);
 
 	plane* Planes() const { return planes; }
 	device_plane_info* deviceCubeInfo() { return dpi; }

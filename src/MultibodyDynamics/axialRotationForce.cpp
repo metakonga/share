@@ -44,7 +44,7 @@ void axialRotationForce::calcForce(VECD* rhs)
 			sp.z, 0.0, -sp.x,
 			-sp.y, sp.x, 0.0);
 		VEC3D mf = m_sp * (r_force * u);
-		int ic = base->ID() * 7;
+		int ic = base->ID() * base->NumDOF();
 		(*rhs)(ic) = mf.x;
 		(*rhs)(ic + 1) = mf.y;
 		(*rhs)(ic + 2) = mf.z;
@@ -62,11 +62,11 @@ void axialRotationForce::calcForce(VECD* rhs)
 			0.0, -sp.z, sp.y,
 			sp.z, 0.0, -sp.x,
 			-sp.y, sp.x, 0.0);
-		//MAT33D inv_sp = m_sp.inv();
-		VEC3D b = r_force * u;
-		VEC3D mf = action->toGlobal(VEC3D(0, -400.0, 0));
-		double mag = mf.length();
-		int ic = action->ID() * 7;
+		MAT33D inv_sp = m_sp.inv();
+		VEC3D mf = m_sp * (r_force * u);
+	    mf = action->toGlobal(mf);
+	///	double mag = mf.length();
+		int ic = action->ID() * base->NumDOF();
 		(*rhs)(ic) += mf.x;
 		(*rhs)(ic + 1) += mf.y;
 		(*rhs)(ic + 2) += mf.z;
@@ -78,8 +78,8 @@ void axialRotationForce::saveData(QTextStream& qts)
 	qts << endl
 		<< "FORCE_ELEMENT " << type << endl
 		<< "NAME " << name << endl
-		<< "BASE " << base->name() << endl
-		<< "ACTION " << action->name() << endl
+		<< "BASE " << base->Name() << endl
+		<< "ACTION " << action->Name() << endl
 		<< "LOCATION " << loc.x << " " << loc.y << " " << loc.z << endl
 		<< "AXIS_UNIT " << u.x << " " << u.y << " " << u.z << endl
 		<< "FORCE_VALUE " << r_force << endl;

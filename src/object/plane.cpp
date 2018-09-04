@@ -5,7 +5,7 @@
 unsigned int plane::nPlane = 0;
 
 plane::plane()
-	:object()
+	: pointMass()
 	, l1(0)
 	, l2(0)
 {
@@ -13,7 +13,7 @@ plane::plane()
 }
 
 plane::plane(QString& _name,  geometry_use _roll)
-	: object(_name, PLANE, _roll)
+	: pointMass(_name, PLANE, _roll)
 	, l1(0)
 	, l2(0)
 {
@@ -21,7 +21,7 @@ plane::plane(QString& _name,  geometry_use _roll)
 }
 
 plane::plane(const plane& _plane)
-	: object(_plane)
+	: pointMass(_plane)
 	, l1(_plane.L1())
 	, l2(_plane.L2())
 	, xw(_plane.XW())
@@ -69,7 +69,7 @@ bool plane::define(VEC3D& _xw, VEC3D& _pa, VEC3D& _pc, VEC3D& _pb)
 	u1 = pa / l1;
 	u2 = pb / l2;
 	uw = u1.cross(u2);
-	com = xw + (l1 * u1) + (l2 * u2);
+	pointMass::pos = xw + (l1 * u1) + (l2 * u2);
 	nPlane++;
 
 	return true;
@@ -90,47 +90,4 @@ bool plane::define(VEC3D& _xw, VEC3D& _pa, VEC3D& _pb)
 	uw = u1.cross(u2);
 
 	return true;
-}
-
-void plane::update(pointMass* pm)
-{
-// 	if (tsd == CPU){
-// 		xw += dt * VEC3D(0.0, 0.0, 0.0);	//plane motion setting, m/s, CPU code
-// 		w2 += dt * VEC3D(0.0, 0.0, 0.0);
-// 		w3 += dt * VEC3D(0.0, 0.0, 0.0);
-// 		w4 += dt * VEC3D(0.0, 0.0, 0.0);
-// 	}
-// 	else if(tsd == GPU){
-// 		device_plane_info *h_dpi = new device_plane_info;
-// 		checkCudaErrors(cudaMemcpy(h_dpi, dpi, sizeof(device_plane_info), cudaMemcpyDeviceToHost));
-// 		// plane motion setting, m/s, GPU code, mde파일에서 plane 설정값중 마지막값 '1'로 바꾸기
-// 		h_dpi->xw = make_double3(h_dpi->xw.x + dt * 0.0, h_dpi->xw.y + dt *  0.2, h_dpi->xw.z + dt *  0.0);
-// 		h_dpi->w2 = make_double3(h_dpi->w2.x + dt * 0.0, h_dpi->w2.y + dt *  0.2, h_dpi->w2.z + dt *  0.0);
-// 		h_dpi->w3 = make_double3(h_dpi->w3.x + dt * 0.0, h_dpi->w3.y + dt *  0.2, h_dpi->w3.z + dt *  0.0);
-// 		h_dpi->w4 = make_double3(h_dpi->w4.x + dt * 0.0, h_dpi->w4.y + dt *  0.2, h_dpi->w4.z + dt *  0.0);
-// 		checkCudaErrors(cudaMemcpy(dpi, h_dpi, sizeof(device_plane_info), cudaMemcpyHostToDevice));
-// 		delete h_dpi;
-// 	}
-	
-}
-
-void plane::Save(QTextStream& ts)
-{
-
-	//QTextStream ts(&(md->modelStream()));
-//	bool isExistMass = ms ? true : false;
-
-// 	ts << "OBJECT PLANE " << id << " " << name << " " << roll_type << " " << mat_type << " " << (int)_expression << " " << isExistMass << endl
-// 		<< xw.x << " " << xw.y << " " << xw.z << endl;
-// 	VEC3D ap = xw + pa;
-// 	ts << ap.x << " " << ap.y << " " << ap.z << endl;
-// 	VEC3D cp = xw + pb + l1 * u1;
-// 	ts << cp.x << " " << cp.y << " " << cp.z << endl;
-// 	VEC3D bp = xw + pb;
-// 	ts << bp.x << " " << bp.y << " " << bp.z << endl;
-// 
-// 	if (isExistMass)
-// 	{
-// 		save_mass_data(ts);
-// 	}
 }

@@ -1,20 +1,17 @@
 #ifndef CYLINDER_H
 #define CYLINDER_H
 
-#include "object.h"
+#include "pointMass.h"
 
 struct device_cylinder_info;
 
-class cylinder : public object
+class cylinder : public pointMass
 {
 public:
 	cylinder();
 	cylinder(QString& _name, geometry_use _roll);
 	cylinder(const cylinder& _cube);
 	virtual ~cylinder();
-
-	virtual void update(pointMass* pm);
-	virtual void Save(QTextStream& ts);
 
 	bool define(double _br, double _tr, VEC3D _bpos, VEC3D _tpos);
 	double baseRadius() const { return br; }

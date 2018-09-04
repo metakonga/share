@@ -13,8 +13,8 @@ public:
 	virtual ~fixedConstraint();
 
 	virtual void calculation_reaction_force(double ct) {};
-	virtual void constraintEquation2D(double m, double* rhs) {};
-	virtual void constraintJacobian2D(SMATD& cjaco){};
+	virtual void constraintEquation(double m, double* rhs);
+	virtual void constraintJacobian(SMATD& cjaco);
 };
 
 #endif

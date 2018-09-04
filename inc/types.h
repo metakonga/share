@@ -51,6 +51,14 @@ inline QStringList getMaterialList(){
 	return stList;
 }
 
+inline QStringList getPreDefinedMBDList()
+{
+	QStringList stList;
+	//stList.push_back("SliderCrank3D");
+	stList.push_back("FullCarModel");
+	return stList;
+}
+
 enum geometry_type{	
 	NO_GEOMETRY_TYPE=-1, CUBE = 2, PLANE = 3, LINE = 5,	SPHERE = 7,
 	POLYGON_SHAPE = 19,	PARTICLES = 13,	RECTANGLE = 17, CIRCLE = 23, CYLINDER = 27, OBJECT = 100
@@ -63,7 +71,7 @@ enum geometry_use{	NO_USE_TYPE=-1, PARTICLE=0,	MASS,	BOUNDAR_WALL };
 enum mass_type{	NO_MASS_TYPE,	RIGID_BODY,	DEFORM_BODY };
 enum integrator_type{ EULER_METHOD,	VELOCITY_VERLET,	IMPLICIT_HHT };
 enum device_type{ CPU,	GPU };
-enum dimension_type{ DIM2 = 2,	DIM3 = 3 };
+enum dimension_type{ DIM2 = 3,	DIM3 = 7 };
 enum precision_type{ SINGLE_PRECISION, DOUBLE_PRECISION };
 enum solver_type{ DEM, SPH, MBD };
 enum fileFormat{ ASCII, BINARY };
@@ -75,7 +83,7 @@ enum particle_type { GEOMETRY = 0, FLUID, FLOATING, BOUNDARY, DUMMY, GHOST, FREE
 enum correction_type { CORRECTION = 0, GRADIENT_CORRECTION, KERNEL_CORRECTION, MIXED_CORRECTION };
 enum kernel_type{ CUBIC_SPLINE = 0, QUADRATIC, QUINTIC, WENDLAND, GAUSS, MODIFIED_GAUSS };
 enum boundary_type{ DUMMY_PARTICLE_METHOD };
-enum import_shape_type { MILKSHAPE_3D_ASCII };
+enum import_shape_type { NO_SUPPORT_FORMAT = 0, MILKSHAPE_3D_ASCII, STL_ASCII };
 
 typedef struct 
 {
@@ -270,13 +278,6 @@ inline QStringList getPMResultString()
 	stList.push_back("RVX"); stList.push_back("RVY"); stList.push_back("RVZ");
 	stList.push_back("AX"); stList.push_back("AY"); stList.push_back("AZ");
 	stList.push_back("RAX"); stList.push_back("RAY"); stList.push_back("RAZ");
-	return stList;
-}
-
-inline QStringList getPreDefinedMBDList()
-{
-	QStringList stList;
-	stList.push_back("waveGeneratorModel");
 	return stList;
 }
 

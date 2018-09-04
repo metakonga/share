@@ -3,8 +3,8 @@
 
 
 kinematicConstraint::kinematicConstraint()
-	: i(NULL)
-	, j(NULL)
+	: ib(NULL)
+	, jb(NULL)
 	, lm(NULL)
 	//, reactionForce(NULL)
 	, srow(0)
@@ -22,8 +22,8 @@ kinematicConstraint::kinematicConstraint(
 	pointMass* ip, VEC3D& _spi, VEC3D& _fi, VEC3D& _gi, 
 	pointMass* jp, VEC3D& _spj, VEC3D& _fj, VEC3D& _gj)
 	: md(_md)
-	, i(ip)
-	, j(jp)
+	, ib(ip)
+	, jb(jp)
 	, lm(NULL)
 	, type(kt)
 	, nm(_nm)
@@ -48,8 +48,8 @@ kinematicConstraint::kinematicConstraint(
 
 kinematicConstraint::kinematicConstraint(const kinematicConstraint& _kc)
 {
-	i = _kc.iMass();
-	j = _kc.jMass();
+	ib = _kc.iMass();
+	jb = _kc.jMass();
 	ax = _kc.axis();
 	nm = _kc.name();
 	type = _kc.constType();
@@ -70,8 +70,8 @@ kinematicConstraint::kinematicConstraint(const kinematicConstraint& _kc)
 
 kinematicConstraint::kinematicConstraint(QString _nm)
 	: nm(_nm)
-	, i(NULL)
-	, j(NULL)
+	, ib(NULL)
+	, jb(NULL)
 	, lm(NULL)
 	//, reactionForce(NULL)
 	, srow(0)
@@ -105,7 +105,7 @@ void kinematicConstraint::setCoordinates()
 //  	spi = i->toLocal(spi - i->getPosition());
 //  	spj = j->toLocal(spj - j->getPosition());
 	bool incGround = false;
-	if (i->MassType() == pointMass::GROUND || j->MassType() == pointMass::GROUND)
+	if (ib->MassType() == pointMass::GROUND || jb->MassType() == pointMass::GROUND)
 	{
 		incGround = true;
 	}
@@ -126,6 +126,10 @@ void kinematicConstraint::setCoordinates()
 		nconst = 3;
 		!incGround ? maxnnz += 30 : maxnnz += 15;
 		break; 
+	case kinematicConstraint::UNIVERSAL:
+		nconst = 4;
+		!incGround ? maxnnz += 38 : maxnnz += 19;
+		break;
 	}
 }
 
@@ -145,11 +149,11 @@ void kinematicConstraint::saveData(QTextStream& qts)
 		<< "NAME " << nm << endl
 		<< "TYPE " << (int)type << endl
 		<< "LOCATION " << loc.x << " " << loc.y << " " << loc.z << endl
-		<< "BASE_NAME " << i->name() << endl		
+		<< "BASE_NAME " << ib->Name() << endl		
 		<< "BASE_LOCAL " << spi.x << " " << spi.y << " " << spi.z << endl
 		<< "BASE_P_POINT " << fi.x << " " << fi.y << " " << fi.z << endl
 		<< "BASE_Q_POINT " << gi.x << " " << gi.y << " " << gi.z << endl
-		<< "ACTION_NAME " << j->name() << endl
+		<< "ACTION_NAME " << jb->Name() << endl
 		<< "ACTION_LOCAL " << spj.x << " " << spj.y << " " << spj.z << endl
 		<< "ACTION_P_POINT " << fj.x << " " << fj.y << " " << fj.z << endl
 		<< "ACTION_Q_POINT " << gj.x << " " << gj.y << " " << gj.z << endl;

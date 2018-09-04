@@ -55,19 +55,32 @@ void springDamperModel::calcForce(VECD* rhs)
 		
 	if (base->MassType() != pointMass::GROUND)
 	{
-		int irc = base->ID() * 7;
-		rhs->plus(irc, POINTER3(Qi), POINTER(QRi), 3, 4);
+		if (base->NumDOF() == DIM2){}
+		else
+		{
+			int irc = base->ID() * 7;
+			rhs->plus(irc, POINTER3(Qi), POINTER(QRi), 3, 4);
+		}		
 	}
 	if (action->MassType() != pointMass::GROUND)
 	{
-		int jrc = action->ID() * 7;
-		rhs->plus(jrc, POINTER3(Qj), POINTER(QRj), 3, 4);
+		if (base->NumDOF() == DIM2){}
+		else
+		{
+			int jrc = action->ID() * 7;
+			rhs->plus(jrc, POINTER3(Qj), POINTER(QRj), 3, 4);
+		}
 	}
 	//rhs->plus(irc, POINTER3)
 }
 
 void springDamperModel::derivate(MATD& lhs, double mul)
 {
+	if (base->NumDOF() != action->NumDOF())
+		return;
+	else if (base->NumDOF() == DIM2)
+		return;
+
 	MAT33D N1;
 	MAT34D NP1;
 	MAT33D N2;
@@ -170,8 +183,8 @@ void springDamperModel::saveData(QTextStream& qts)
 	qts << endl
 		<< "FORCE_ELEMENT " << type << endl
 		<< "NAME " << name << endl
-		<< "BASE " << base->name() << endl
-		<< "ACTION " << action->name() << endl
+		<< "BASE " << base->Name() << endl
+		<< "ACTION " << action->Name() << endl
 		<< "BASELOC " << baseLoc.x << " " << baseLoc.y << " " << baseLoc.z << endl
 		<< "ACTIONLOC " << actionLoc.x << " " << actionLoc.y << " " << actionLoc.z << endl
 		<< "BASELOCAL " << spi.x << " " << spi.y << " " << spi.z << endl

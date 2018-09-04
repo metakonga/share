@@ -4,7 +4,7 @@
 unsigned int cube::nCube = 0;
 
 cube::cube(QString& _name, geometry_use _roll)
-	: object(_name, CUBE, _roll)
+	: pointMass(_name, CUBE, _roll)
 	, planes(NULL)
 {
 	
@@ -16,7 +16,7 @@ cube::cube(const cube& _cube)
 	, min_p(_cube.min_point())
 	, max_p(_cube.max_point())
 	, size(_cube.cube_size())
-	, object(_cube)
+	, pointMass(_cube)
 {
 	if (!planes)
 		planes = new plane[6];
@@ -58,7 +58,7 @@ bool cube::define(VEC3D& min, VEC3D& max)
 		planes = new plane[6];
 	min_p = min;
 	max_p = max;
-	com = 0.5 * (min + max);
+	pointMass::pos = 0.5 * (min + max);
 	size.x = (max_p - VEC3D(min_p.x, max_p.y, max_p.z)).length();
 	size.y = (max_p - VEC3D(max_p.x, min_p.y, max_p.z)).length();
 	size.z = (max_p - VEC3D(max_p.x, max_p.y, min_p.z)).length();
@@ -132,12 +132,3 @@ bool cube::define(VEC3D& min, VEC3D& max)
 // 	}
 // 	return count;
 // }
-
-void cube::save_object_data(QTextStream& ts)
-{
-	//QTextStream ts(&(md->modelStream()));
-//	bool isExistMass = ms ? true : false;
-	ts << "OBJECT CUBE " << id << " " << name << " " << roll_type << " " << mat_type << " " /*<< (int)_expression << " " << isExistMass*/ << endl
-		<< min_p.x << " " << min_p.y << " " << min_p.z << endl
-		<< max_p.x << " " << max_p.y << " " << max_p.z << endl;
-}

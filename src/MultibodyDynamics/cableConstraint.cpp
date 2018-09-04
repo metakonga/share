@@ -38,71 +38,127 @@ void cableConstraint::setApplyCableForceMass(pointMass* acm)
 	a_cf_mass = acm;
 }
 
-void cableConstraint::constraintEquation(int sr, double* rhs, double mul)
+// void cableConstraint::constraintEquation(int sr, double* rhs, double mul)
+// {
+// 	VEC3D fdij = fj->getPosition() + fj->toGlobal(fspj) - fi->getPosition() - fi->toGlobal(fspi);
+// 	double fc = fdij.length() - f_c;
+// 	VEC3D sdij = sj->getPosition() + sj->toGlobal(sspj) - si->getPosition() - si->toGlobal(sspi);
+// 	double sc = sdij.length() - s_c;
+// 	rhs[sr] = mul * (fc + sc);
+// }
+
+void cableConstraint::constraintEquation(double m, double* rhs)
 {
 	VEC3D fdij = fj->getPosition() + fj->toGlobal(fspj) - fi->getPosition() - fi->toGlobal(fspi);
 	double fc = fdij.length() - f_c;
 	VEC3D sdij = sj->getPosition() + sj->toGlobal(sspj) - si->getPosition() - si->toGlobal(sspi);
 	double sc = sdij.length() - s_c;
-	rhs[sr] = mul * (fc + sc);
+	rhs[srow] = m * (fc + sc);
 }
 
-void cableConstraint::constraintJacobian(int sr, SMATD& cjaco)
+void cableConstraint::constraintJacobian(SMATD& cjaco)
 {
 	//updateCableInitLength();
 	VEC3D fdij = fj->getPosition() + fj->toGlobal(fspj) - fi->getPosition() - fi->toGlobal(fspi);
 	VEC3D sdij = sj->getPosition() + sj->toGlobal(sspj) - si->getPosition() - si->toGlobal(sspi);
-	int ic = 0, jc = 0;
-// 	if (fdij.length() > f_c)
-// 		ispulling = true;
-// 	else
-// 		ispulling = false;
+	//int ic = 0, jc = 0;
+	// 	if (fdij.length() > f_c)
+	// 		ispulling = true;
+	// 	else
+	// 		ispulling = false;
 	VEC3D D1;
 	VEC4D D2;
 	double div = 0;
 	if (fi->MassType() != pointMass::GROUND)
 	{
-		ic = sr ? fi->ID() * 7 : 0;
+		//ic = srow ? fi->ID() * 7 : 0;
 		div = 1.0 / fdij.length();
 		D1 = div * (-fdij);
 		D2 = div * transpose(-fdij, B(fi->getEP(), fspi));
-		cjaco.extraction(sr, ic, POINTER(D1), POINTER(D2), VEC3_4);
+		cjaco.extraction(srow, icol, POINTER(D1), POINTER(D2), VEC3_4);
 	}
 	if (fj->MassType() != pointMass::GROUND)
 	{
-		jc = sr ? fj->ID() * 7 : 0;
+		//jc = sr ? fj->ID() * 7 : 0;
 		div = 1.0 / fdij.length();
 		D1 = div * fdij;
 		D2 = div * transpose(fdij, B(fj->getEP(), fspj));
-		cjaco.extraction(sr, jc, POINTER(D1), POINTER(D2), VEC3_4);
+		cjaco.extraction(srow, jcol, POINTER(D1), POINTER(D2), VEC3_4);
 	}
 	if (si->MassType() != pointMass::GROUND)
 	{
-		ic = sr ? si->ID() * 7 : 0;
+		//ic = sr ? si->ID() * 7 : 0;
 		div = 1.0 / sdij.length();
 		D1 = div * (-sdij);
 		D2 = div * transpose(-sdij, B(si->getEP(), sspi));
-		cjaco.extraction(sr, ic, POINTER(D1), POINTER(D2), VEC3_4);
+		cjaco.extraction(srow, icol, POINTER(D1), POINTER(D2), VEC3_4);
 	}
 	if (sj->MassType() != pointMass::GROUND)
 	{
-		jc = sr ? sj->ID() * 7 : 7;
+		//jc = sr ? sj->ID() * 7 : 7;
 		div = 1.0 / sdij.length();
 		D1 = div * sdij;
 		D2 = div * transpose(sdij, B(sj->getEP(), sspj));
-		cjaco.extraction(sr, jc, POINTER(D1), POINTER(D2), VEC3_4);
+		cjaco.extraction(srow, jcol, POINTER(D1), POINTER(D2), VEC3_4);
 	}
 }
+
+// void cableConstraint::constraintJacobian(int sr, SMATD& cjaco)
+// {
+// 	//updateCableInitLength();
+// 	VEC3D fdij = fj->getPosition() + fj->toGlobal(fspj) - fi->getPosition() - fi->toGlobal(fspi);
+// 	VEC3D sdij = sj->getPosition() + sj->toGlobal(sspj) - si->getPosition() - si->toGlobal(sspi);
+// 	int ic = 0, jc = 0;
+// // 	if (fdij.length() > f_c)
+// // 		ispulling = true;
+// // 	else
+// // 		ispulling = false;
+// 	VEC3D D1;
+// 	VEC4D D2;
+// 	double div = 0;
+// 	if (fi->MassType() != pointMass::GROUND)
+// 	{
+// 		ic = sr ? fi->ID() * 7 : 0;
+// 		div = 1.0 / fdij.length();
+// 		D1 = div * (-fdij);
+// 		D2 = div * transpose(-fdij, B(fi->getEP(), fspi));
+// 		cjaco.extraction(sr, ic, POINTER(D1), POINTER(D2), VEC3_4);
+// 	}
+// 	if (fj->MassType() != pointMass::GROUND)
+// 	{
+// 		jc = sr ? fj->ID() * 7 : 0;
+// 		div = 1.0 / fdij.length();
+// 		D1 = div * fdij;
+// 		D2 = div * transpose(fdij, B(fj->getEP(), fspj));
+// 		cjaco.extraction(sr, jc, POINTER(D1), POINTER(D2), VEC3_4);
+// 	}
+// 	if (si->MassType() != pointMass::GROUND)
+// 	{
+// 		ic = sr ? si->ID() * 7 : 0;
+// 		div = 1.0 / sdij.length();
+// 		D1 = div * (-sdij);
+// 		D2 = div * transpose(-sdij, B(si->getEP(), sspi));
+// 		cjaco.extraction(sr, ic, POINTER(D1), POINTER(D2), VEC3_4);
+// 	}
+// 	if (sj->MassType() != pointMass::GROUND)
+// 	{
+// 		jc = sr ? sj->ID() * 7 : 7;
+// 		div = 1.0 / sdij.length();
+// 		D1 = div * sdij;
+// 		D2 = div * transpose(sdij, B(sj->getEP(), sspj));
+// 		cjaco.extraction(sr, jc, POINTER(D1), POINTER(D2), VEC3_4);
+// 	}
+// }
 
 void cableConstraint::saveCableConstraintData(QTextStream& qts)
 {
 	qts << endl
 		<< "CABLE_CONSTRAINT_DATA" << endl
 		<< "NAME " << nm << endl
-		<< "FIRST_I_BODY " << fi->name() << endl
-		<< "FIRST_J_BODY " << fj->name() << endl
-		<< "SECOND_I_BODY " << si->name() << endl
-		<< "SECOND_J_BODY " << sj->name() << endl
+		<< "FIRST_I_BODY " << fi->Name() << endl
+		<< "FIRST_J_BODY " << fj->Name() << endl
+		<< "SECOND_I_BODY " << si->Name() << endl
+		<< "SECOND_J_BODY " << sj->Name() << endl
 		<< "FIRST_I_SP " << fspi.x << " " << fspi.y << " " << fspi.z << endl
 		<< "FIRST_J_SP " << fspj.x << " " << fspj.y << " " << fspj.z << endl
 		<< "SECOND_I_SP " << sspi.x << " " << sspi.y << " " << sspi.z << endl
@@ -124,13 +180,13 @@ void cableConstraint::calculation_reaction_force2body()
 	VECD out;
 	out.alloc(14);
 	jaco.alloc(14, 1, 14);
-	constraintJacobian(0, jaco);
+	constraintJacobian(jaco);
 	double cur_f_c = (fj->getPosition() + fj->toGlobal(fspj) - fi->getPosition() - fi->toGlobal(fspi)).length();
 	if (cur_f_c > pre_f_c)
 	{
 		for (unsigned int i = 0; i < jaco.nnz(); i++)
 		{
-			out(jaco.cidx[i]) += jaco.value[i] * lm[jaco.ridx[i]];
+			out(jaco.cidx[i]) += jaco.value[i] * lm[jaco.ridx[i] - srow];
 		}
 		VEC3D cf = VEC3D(out(0), out(1), out(2));
 		a_cf_mass->setExternalMoment(0.4 * VEC3D(0, 0, cf.length()));
@@ -149,10 +205,10 @@ void cableConstraint::calculation_reaction_force(double ct)
 	VECD out;
 	out.alloc(14);
 	jaco.alloc(14, 1, 14);
-	constraintJacobian(0, jaco);
+	constraintJacobian(jaco);
 	for (unsigned int i = 0; i < jaco.nnz(); i++)
 	{
-		out(jaco.cidx[i]) += jaco.value[i] * lm[jaco.ridx[i]];
+		out(jaco.cidx[i]) += jaco.value[i] * lm[jaco.ridx[i] - srow];
 	}
 	resultStorage::reactionForceData rfd =
 	{

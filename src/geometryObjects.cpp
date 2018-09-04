@@ -153,14 +153,14 @@ plane* geometryObjects::makePlane(
 
 polygonObject* geometryObjects::makePolygonObject
 	(QString nm, geometry_use gu, QString file, import_shape_type t,
-	unsigned int ntri, float* vertexList, unsigned int* indexList,
+	unsigned int ntri, double* vertexList, unsigned int* indexList,
 	material_type mt, double e, double p, double d, double s)
 {
 // 	int begin = file.lastIndexOf("/") + 1;
 // 	int end = file.lastIndexOf(".");
 // 	QString _nm = file.mid(begin, end - begin);
 	polygonObject* po = new polygonObject(nm, gu);
-	po->define(ntri, vertexList, indexList);
+	po->define(t, ntri, vertexList, indexList);
 	po->setMaterial(mt, e, d, p, s);
 	objs[nm] = po;
 	pobjs[polygonObject::Number()] = po;

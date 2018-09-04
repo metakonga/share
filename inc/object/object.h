@@ -6,8 +6,6 @@
 #include <QString>
 #include <QTextStream>
 
-class pointMass;
-
 class object
 {
 public:
@@ -16,11 +14,8 @@ public:
 	object(const object& obj);
 	virtual ~object();
 
-	virtual void update(pointMass* pm){};
-	virtual void Save(QTextStream& ts){};
-
-	VEC3D Center() { return com; }
 	unsigned int ID() const { return id; }
+	dimension_type NumDOF() { return dim; }
 	QString Name() const { return name; }
 	geometry_type ObjectType() const { return obj_type; }
 	material_type MaterialType() const { return mat_type; }
@@ -37,9 +32,9 @@ public:
 
 protected:
 	static unsigned int count;
+	dimension_type dim;
 	unsigned int id;	
 	QString name;
-	VEC3D com;
 	geometry_use roll_type;
 	geometry_type obj_type;
 	material_type mat_type;

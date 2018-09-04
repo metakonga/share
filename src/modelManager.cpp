@@ -44,6 +44,8 @@ void modelManager::SaveCurrentModel()
 		obj->Save(qts);
 	if (cont)
 		cont->Save(qts);
+	if (mbd)
+		mbd->Save(qts);
 	qf.close();
 }
 
@@ -87,6 +89,14 @@ void modelManager::OpenModel(QString file_path)
 			CreateModel(model::name, CONTACT_MANAGER, true);
 			cont->Open(qts, dem->ParticleManager(), obj);
 		}
+		else if (ch == "MULTIBODY_MODEL_DATA")
+		{
+			qts >> ch;
+			CreateModel(model::name, MBD, true);
+			mbd->setMBDModelName(ch);
+			mbd->Open(qts);
+		}
+
 	}
 }
 
@@ -179,4 +189,30 @@ void modelManager::setOnAirModel(modelType t, QString& n)
 		break;
 	}
 
+}
+
+bool modelManager::defineFullCarModel()
+{
+	FullCarModel* fcm = new FullCarModel();
+	bool ret = fcm->setUp();
+	if (ret)
+	{
+		mbds[model::name] = fcm;
+		mbd = fcm;
+	}
+	else
+	{
+		delete fcm;
+		return false;
+	}
+	
+	return ret;
+}
+
+void modelManager::defineSliderCrank3D()
+{
+	SliderCrank3D* sc3d = new SliderCrank3D();
+	sc3d->setUp();
+	mbds[model::name] = sc3d;
+	mbd = sc3d;
 }

@@ -1,9 +1,9 @@
 #ifndef POLYGONOBJECT_H
 #define POLYGONOBJECT_H
 
-#include "object.h"
+#include "pointMass.h"
 
-class polygonObject : public object
+class polygonObject : public pointMass
 {
 public:
 	polygonObject();
@@ -14,9 +14,7 @@ public:
 
 	//virtual unsigned int makeParticles(double rad, VEC3UI &_size, VEC3D& spacing, unsigned int nstack, bool isOnlyCount, VEC4D_PTR pos = NULL, unsigned int sid = 0);
 	//virtual void cuAllocData(unsigned int _np);
-	virtual void update(pointMass* pm);
-	virtual void Save(QTextStream& ts);
-	bool define(unsigned int ntriangle, double* vList, unsigned int *iList);
+	bool define(import_shape_type t, int ntriangle, double* vList, unsigned int *iList);
 	void updateDeviceFromHost();
 
 // 	VEC3D Vertex0(unsigned int i) { return vertice[indice[i].x]; }
@@ -43,7 +41,8 @@ public:
 	static unsigned int Number() { return nPolygonObject; }
 
 private:
-	void fromMS3DASCII(QTextStream& file);
+	void _fromMS3DASCII(int _ntriangle, double* vList, unsigned int *iList);
+	void _fromSTLASCII(int _ntriangle, double* vList);
 
 private:
 	static unsigned int nPolygonObject;

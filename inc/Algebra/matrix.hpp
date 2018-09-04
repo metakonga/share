@@ -119,7 +119,7 @@ namespace algebra
 			//cout.close();
 		}
 
-		void plus(size_t sr, size_t sc, element_t* ptr, int type, double m = 1.0)
+		void plus(int sr, int sc, element_t* ptr, int type, double m = 1.0)
 		{
 			if (sr < 0 || sc < 0)
 			{

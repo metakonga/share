@@ -30,7 +30,7 @@ public:
 		double e, double p, double d, double s);
 	cylinder* makeCylinder(QString _name, double e, double p, double d, geometry_use _roll);
 	polygonObject* makePolygonObject
-		(QString _nm, geometry_use gu, QString file, import_shape_type t, unsigned int ntri, float* vertexList, 
+		(QString _nm, geometry_use gu, QString file, import_shape_type t, unsigned int ntri, double* vertexList, 
 		unsigned int* indexList ,material_type mt, double e, double p, double d, double s);
 
 private:

@@ -4,21 +4,30 @@
 #include <QTextStream>
 #include <QString>
 
-int pointMass::count = -1;
-
 pointMass::pointMass()
-	: ms(0.0)
-	, id(count)
-	//, md(NULL)
+	: object()
+	, ms(0.0)
+	, ang(0.0)
 {
 	ep.e0 = 1.0;
 	count++;
 }
 
+pointMass::pointMass(QString& _name, geometry_type gt, geometry_use gu)
+	: object(_name, gt, gu)
+	, ms(0.0)
+	, ang(0.0)
+	, type(RIGID)
+{
+	ep.e0 = 1.0;
+	makeTransformationMatrix();
+	count++;
+}
+
 pointMass::pointMass(QString& _name, Type _type)
-	: ms(0.0)
-	, id(count)
-	, nm(_name)
+	: object(_name, NO_GEOMETRY_TYPE, MASS)
+	, ms(0.0)
+	, ang(0.0)
 	, type(_type)
 {
 	ep.e0 = 1.0;
@@ -72,6 +81,11 @@ void pointMass::exportResultData2TXT()
 // 	qf.close();
 }
 
+VEC3D pointMass::getAngularVelocity()
+{
+	return 2.0 * ep.G() * ev;
+}
+
 void pointMass::setSymetryInertia(double ixy, double ixz, double iyz)
 {
 	sym_iner = VEC3D(ixy, ixz, iyz);
@@ -84,36 +98,35 @@ void pointMass::setDiagonalInertia(double ixx, double iyy, double izz)
 
 void pointMass::saveData(QTextStream& qts) const
 {
-	qts << endl;// << "TYPE ";
-	switch (type)
-	{
-	case RIGID:	qts << "RIGID" << endl; break;
-	case FLEXIBLE: qts << "FLEXIBLE" << endl; break;
-	}
-	qts << "NAME " << nm << endl;
-	qts << "MASS " << ms << endl
-		<< "PINER " << prin_iner.x << " " << prin_iner.y << " " << prin_iner.z << endl
-		<< "SINER " << sym_iner.x << " " << sym_iner.y << " " << sym_iner.z << endl
-		<< "POSITION " << pos.x << " " << pos.y << " " << pos.z << endl
-		<< "VELOCITY " << vel.x << " " << vel.y << " " << vel.z << endl
-		<< "EPARAMETER " << ep.e0 << " " << ep.e1 << " " << ep.e2 << " " << ep.e3 << endl;
+// 	qts << endl;// << "TYPE ";
+// 	switch (type)
+// 	{
+// 	case RIGID:	qts << "RIGID" << endl; break;
+// 	case FLEXIBLE: qts << "FLEXIBLE" << endl; break;
+// 	}
+// 	qts << "NAME " << nm << endl;
+// 	qts << "MASS " << ms << endl
+// 		<< "PINER " << prin_iner.x << " " << prin_iner.y << " " << prin_iner.z << endl
+// 		<< "SINER " << sym_iner.x << " " << sym_iner.y << " " << sym_iner.z << endl
+// 		<< "POSITION " << pos.x << " " << pos.y << " " << pos.z << endl
+// 		<< "VELOCITY " << vel.x << " " << vel.y << " " << vel.z << endl
+// 		<< "EPARAMETER " << ep.e0 << " " << ep.e1 << " " << ep.e2 << " " << ep.e3 << endl;
 }
 
 void pointMass::openData(QTextStream& qts)
 {
-	QString ch;
-	qts >> ch >> nm;
-	qts >> ch >> ms
-		>> ch >> prin_iner.x >> prin_iner.y >> prin_iner.z
-		>> ch >> sym_iner.x >> sym_iner.y >> sym_iner.z
-		>> ch >> pos.x >> pos.y >> pos.z
-		>> ch >> vel.x >> vel.y >> vel.z
-		>> ch >> ep.e0 >> ep.e1 >> ep.e2 >> ep.e3;
-		//>> pos.x >> pos.y >> pos.z
-		//>> vel.x >> vel.y >> vel.z
-		//>> ep.e0 >> ep.e1 >> ep.e2 >> ep.e3;
-	makeTransformationMatrix();
-	setInertia();
+// 	QString ch;
+// 	qts >> ch >> ms
+// 		>> ch >> prin_iner.x >> prin_iner.y >> prin_iner.z
+// 		>> ch >> sym_iner.x >> sym_iner.y >> sym_iner.z
+// 		>> ch >> pos.x >> pos.y >> pos.z
+// 		>> ch >> vel.x >> vel.y >> vel.z
+// 		>> ch >> ep.e0 >> ep.e1 >> ep.e2 >> ep.e3;
+// 		//>> pos.x >> pos.y >> pos.z
+// 		//>> vel.x >> vel.y >> vel.z
+// 		//>> ep.e0 >> ep.e1 >> ep.e2 >> ep.e3;
+// 	makeTransformationMatrix();
+// 	setInertia();
 }
 
 VEC3D pointMass::toLocal(VEC3D &v)

@@ -1,42 +1,42 @@
 #include "mbd_model.h"
 #include "GLWidget.h"
-//#include "cube.h"
 #include "pointMass.h"
 #include "forceElement.h"
-//#include "plane.h"
 #include "fixedConstraint.h"
 #include "revoluteConstraint.h"
 #include "sphericalConstraint.h"
 #include "translationalConstraint.h"
 #include "axialRotationForce.h"
 #include "universalConstraint.h"
-//#include "drivingConstraint.h"
-//#include "gearConstraint.h"
 #include "springDamperModel.h"
+#include "database.h"
 #include <direct.h>
 #include <QString>
 
 mbd_model::mbd_model()
 	: model()
-	, model_path("")
+	, mbd_model_name("")
 	, ground(NULL)
 	, is2D(false)
 {
 	ground = new pointMass(QString("ground"), pointMass::GROUND);
+	//GLWidget::GLObject()->makeMarker("ground", ground->getPosition());
+	ground->setID(-1);
 }
 
 mbd_model::mbd_model(QString _name)
 	: model()
-	, model_path("")
+	, mbd_model_name(_name)
 	, ground(NULL)
 	, is2D(false)
 {
 	ground = new pointMass(QString("ground"), pointMass::GROUND);
+	//GLWidget::GLObject()->makeMarker("ground",  ground->getPosition());
+	ground->setID(-1);
 }
 
 mbd_model::~mbd_model()
 {
-
 	if (ground) delete ground; ground = NULL;
 	qDeleteAll(masses);
 	qDeleteAll(consts);
@@ -68,6 +68,24 @@ kinematicConstraint* mbd_model::createKinematicConstraint(
 		break;
 	}
 	consts[_name] = kin;
+	database::DB()->addChild(database::CONSTRAINT_ROOT, _name);
+
+	QString log;
+	QTextStream qts(&log);
+	qts << "ELEMENT " << "constraint" << endl
+		<< "NAME " << _name << endl
+		<< "TYPE " << kt << endl
+		<< "FIRST_BODY " << i->Name() << endl
+		<< "SECOND_BODY " << j->Name() << endl
+		<< "FIRST_JOINT_COORDINATE "
+		<< spi.x << " " << spi.y << " " << spi.z << " " 
+		<< fi.x << " " << fi.y << " " << fi.z << " " 
+		<< gi.x << " " << gi.y << " " << gi.z << endl
+		<< "FIRST_JOINT_COORDINATE "
+		<< spj.x << " " << spj.y << " " << spj.z << " " 
+		<< fj.x << " " << fj.y << " " << fj.z << " " 
+		<< gj.x << " " << gj.y << " " << gj.z << endl;
+	other_logs[_name] = log;
 	return kin;
 }
 
@@ -158,6 +176,18 @@ springDamperModel* mbd_model::createSpringDamperElement(
 {
 	springDamperModel* fe = new springDamperModel(_name, this, i, bLoc, j, aLoc, k, c);
 	forces[_name] = fe;
+	database::DB()->addChild(database::SPRING_DAMPER_ROOT, _name);
+
+	QString log;
+	QTextStream qts(&log);
+	qts << "ELEMENT " << "tsda" << endl
+		<< "NAME " << _name << endl
+		<< "FIRST_BODY " << i->Name() << endl
+		<< "SECOND_BODY " << j->Name() << endl
+		<< "FIRST_LOCATION " << bLoc.x << " " << bLoc.y << " " << bLoc.z << endl
+		<< "SECOND_LOCATION " << aLoc.x << " " << aLoc.y << " " << aLoc.z << endl
+		<< "COEFF_SPRING " << k << endl << "COEFF_DAMPING " << c << endl;
+	other_logs[_name] = log;
 	return fe;
 }
 
@@ -217,79 +247,32 @@ bool mbd_model::mode2D()
 	return is2D;
 }
 
-rigidBody* mbd_model::createRigidBody(QString _name)
+rigidBody* mbd_model::createRigidBody(
+	QString _name, double mass, VEC3D piner, VEC3D siner, 
+	VEC3D p, EPD ep /*= EPD(1.0, 0.0, 0.0, 0.0)*/)
 {
 	rigidBody* rb = new rigidBody(_name);
+	rb->setMass(mass);
+	rb->setDiagonalInertia(piner.x, piner.y, piner.z);
+	rb->setSymetryInertia(siner.x, siner.y, siner.z);
+	rb->setPosition(p);
+	rb->setEP(ep);
+	GLWidget::GLObject()->makeMarker(_name, p);
 	masses[_name] = rb;
-// 	QMap<QString, object*>::iterator it = objs.find(_name);
-// 	object* obj = NULL;
-// 	mass *ms = new mass(this, _name);
-// 	if (it == objs.end()){
-// 		masses[NULL] = ms;
-// 		return ms;
-// 	}
-// 	else{
-// 		obj = it.value();
-// 		masses[obj] = ms;
-// 		obj->addPointMass(ms);
-// 	}
-// 
-// 	switch (obj->objectType()){				//calculate Mass Center Position
-// 	case CUBE:{
-// 		cube *c = getChildObject<cube*>(_name);
-// 		VEC3D minp = c->min_point();
-// 		VEC3D maxp = c->max_point();
-// 		VEC3D CuCenterp;
-// 		CuCenterp.x = (maxp.x + minp.x) / 2;
-// 		CuCenterp.y = (maxp.y + minp.y) / 2;
-// 		CuCenterp.z = (maxp.z + minp.z) / 2;
-// 		ms->setMassPoint(CuCenterp);
-// 		break;
-// 	}
-// 	case PLANE:{
-// 		plane *pl = getChildObject<plane*>(_name);// .find(_name).value();
-// 		VEC3D xw = pl->XW();
-// 		VEC3D w2 = pl->W2();
-// 		VEC3D w3 = pl->W3();
-// 		VEC3D w4 = pl->W4();
-// 		VEC3D PlMidp1;
-// 		PlMidp1.x = (xw.x + w2.x) / 2;
-// 		PlMidp1.y = (xw.y + w2.y) / 2;
-// 		PlMidp1.z = (xw.z + w2.z) / 2;
-// 		VEC3D PlMidp2;
-// 		PlMidp2.x = (w3.x + w4.x) / 2;
-// 		PlMidp2.y = (w3.y + w4.y) / 2;
-// 		PlMidp2.z = (w3.z + w4.z) / 2;
-// 		VEC3D PlCenterp;
-// 		PlCenterp.x = (PlMidp1.x + PlMidp2.x) / 2;
-// 		PlCenterp.y = (PlMidp1.y + PlMidp2.y) / 2;
-// 		PlCenterp.z = (PlMidp1.z + PlMidp2.z) / 2;
-// 		ms->setMassPoint(PlCenterp);
-// 		break;
-// 	}
-// 	case POLYGON:{
-// 		polygonObject* pobj = getChildObject<polygonObject*>(_name);// <QString, polygonObject>::iterator po = pObjs.find(_name);
-// 		ms->setMassPoint(pobj->getOrigin());
-// 		break;
-// 	}
-// 	case CYLINDER:{
-// 		cylinder *cy = getChildObject<cylinder*>(_name);// .find(_name).value();
-// 		VEC3D goc;
-// 		ms->setPosition(cy->origin());
-// 		ms->setEP(cy->orientation());
-// 		//goc = cy.origin().To<double>();
-// 		break;
-// 	}
-// 	}
-// 	db->addChild(database::MASS_ROOT, _name);
-	return rb;
-}
+	database::DB()->addChild(database::RIGID_BODY_ROOT, _name);
+	
+	QString log;
+	QTextStream qts(&log);
+	qts << "ELEMENT " << "rigid" << endl
+		<< "NAME " << _name << endl
+		<< "MASS " << mass << endl
+		<< "MATERIAL_TYPE " << rb->MaterialType() << endl
+		<< "POSITION " << p.x << " " << p.y << " " << p.z << endl
+		<< "PARAMETER " << ep.e0 << " " << ep.e1 << " " << ep.e2 << " " << ep.e3 << endl
+		<< "D_INERTIA " << piner.x << " " << piner.y << " " << piner.z << endl
+		<< "S_INERTIA " << siner.x << " " << siner.y << " " << siner.z << endl;
+	body_logs[_name] = log;
 
-rigidBody* mbd_model::createRigidBody(QTextStream& qts)
-{
-	rigidBody* rb = new rigidBody();
-	rb->openData(qts);
-	masses[rb->name()] = rb;
 	return rb;
 }
 
@@ -298,20 +281,74 @@ pointMass* mbd_model::Ground()
 	return ground;
 }
 
-// particle_system* mbd_model::makeParticleSystem(QString _name)
-// {
-// 	if (!ps)
-// 		ps = new particle_system(_name, this);
-// 	return ps;
-// }
+void mbd_model::Open(QTextStream& qts)
+{
+	QString ch;
+	while (ch != "END_DATA")
+	{
+		qts >> ch;
+		if (ch == "ELEMENT")
+			qts << ch;
+		if (ch == "rigid")
+		{
+			QString _name;
+			int mt;
+			double mass;
+			VEC3D p, piner, siner;
+			EPD ep;
+			qts >> ch >> _name
+				>> ch >> mass
+				>> ch >> mt
+				>> ch >> p.x >> p.y >> p.z
+				>> ch >> ep.e0 >> ep.e1 >> ep.e2 >> ep.e3
+				>> ch >> piner.x >> piner.y >> piner.z
+				>> ch >> siner.x >> siner.y >> siner.z;
+			createRigidBody(_name, mass, piner, siner, p, ep);
+		}
+		else if (ch == "constraint")
+		{
+			QString _name, ib, jb;
+			int kt;
+			VEC3D spi, fi, gi, spj, fj, gj;
+			qts >> ch >> _name >> ch >> kt >> ch >> ib >> ch >> jb
+				>> ch >> spi.x >> spi.y >> spi.z 
+				>> ch >> fi.x >> fi.y >> fi.z
+				>> ch >> gi.x >> gi.y >> gi.z
+				>> ch >> spj.x >> spj.y >> spj.z
+				>> ch >> fj.x >> fj.y >> fj.z
+				>> ch >> gj.x >> gj.y >> gj.z;
+			createKinematicConstraint(
+				_name, (kinematicConstraint::Type)kt,
+				masses[ib], spi, fi, gi, masses[jb], spj, fj, gj);
+		}
+		else if (ch == "tsda")
+		{
+			QString _name, ib, jb;
+			double k, c;
+			VEC3D bLoc, aLoc;
+			qts >> ch >> _name >> ch >> ib >> ch >> jb
+				>> ch >> bLoc.x >> bLoc.y >> bLoc.z
+				>> ch >> aLoc.x >> aLoc.y >> aLoc.z
+				>> ch >> k >> ch >> c;
+			createSpringDamperElement(_name, masses[ib], bLoc, masses[jb], aLoc, k, c);
+		}
+	}
+}
 
-// drivingConstraint* mbd_model::makeDrivingConstraint(QString _name, kinematicConstraint* kconst, tDriving td, double val)
-// {
-// 	drivingConstraint* dc = new drivingConstraint(_name);
-// 	dc->define(kconst, td, val);
-// 	dconsts[_name] = dc;
-// 	return dc;
-// }
+void mbd_model::Save(QTextStream& qts)
+{
+	qts << endl
+		<< "MULTIBODY_MODEL_DATA " << mbd_model_name << endl;
+	foreach(QString log, body_logs)
+	{
+		qts << log;
+	}
+	foreach(QString log, other_logs)
+	{
+		qts << log;
+	}
+	qts << "END_DATA" << endl;
+}
 
 void mbd_model::exportPointMassResultData2TXT()
 {

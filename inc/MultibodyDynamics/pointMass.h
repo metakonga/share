@@ -1,21 +1,18 @@
 #ifndef MASSPOINT_H
 #define MASSPOINT_H
 
-//#include "vectorTypes.h"
-#include "algebraMath.h"
-#include <QTextStream>
+#include "object.h"
 
-class pointMass
+class pointMass : public object
 {
 public:
 	enum Type { GROUND = 0, RIGID, FLEXIBLE };
 	pointMass();
+	pointMass(QString& _name, geometry_type gt, geometry_use gu);
 	pointMass(QString& _name, Type _type);
-	~pointMass();
+	virtual ~pointMass();
 
-	int ID() { return id; }
 	Type MassType() { return type; }
-	QString& name(){ return nm; }
 	double getMass() { return ms; }
 	MAT33D getInertia() { return inertia; }
 	VEC3D getPosition() { return pos; }
@@ -32,14 +29,12 @@ public:
 	VEC3D getAcceleration() { return acc; }
 	VEC3D getSymInertia() { return sym_iner; }
 	VEC3D getPriInertia() { return prin_iner; }
+	VEC3D getAngularVelocity();
 
-	void setID(int _id) { id = _id; }
 	void setMassType(Type tp) { type = tp; }
-	//void setName(QString _n)
 	void setMass(double _ms) { ms = _ms; }
-	//void setMassPoint(VEC3D _mp) { pos = _mp; }
-	void setSymetryInertia(double ixx, double iyy, double izz);
-	void setDiagonalInertia(double ixy, double ixz, double iyz);
+	void setSymetryInertia(double ixy, double ixz, double iyz);
+	void setDiagonalInertia(double ixx, double iyy, double izz);
 	void setInertia() { inertia.diagonal(POINTER3(prin_iner)); }
 	void setPosition(VEC3D& _p) { pos = _p; }
 	void setVelocity(VEC3D& _v) { vel = _v; }
@@ -75,10 +70,7 @@ public:
 	static int Count() { return count; }
 
 protected:
-	static int count;
 	Type type;
-	QString nm;
-	int id;
 	double ms;				// pointMass of object
 	VEC3D sym_iner;			// Ixx, Iyy, Izz
 	VEC3D prin_iner;		// Ixy, Ixz, Iyz
