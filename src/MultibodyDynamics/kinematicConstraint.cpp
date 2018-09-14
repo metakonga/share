@@ -100,10 +100,10 @@ VEC3D kinematicConstraint::location() const
 
 void kinematicConstraint::setCoordinates()
 {
-// 	spi = loc - (i ? i->getPosition() : VEC3D(0, 0, 0));
-// 	spj = loc - (j ? j->getPosition() : VEC3D(0, 0, 0));
-//  	spi = i->toLocal(spi - i->getPosition());
-//  	spj = j->toLocal(spj - j->getPosition());
+// 	spi = loc - (i ? i->Position() : VEC3D(0, 0, 0));
+// 	spj = loc - (j ? j->Position() : VEC3D(0, 0, 0));
+//  	spi = i->toLocal(spi - i->Position());
+//  	spj = j->toLocal(spj - j->Position());
 	bool incGround = false;
 	if (ib->MassType() == pointMass::GROUND || jb->MassType() == pointMass::GROUND)
 	{

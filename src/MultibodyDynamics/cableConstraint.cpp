@@ -22,8 +22,8 @@ cableConstraint::cableConstraint(QString _name, pointMass* _fi, VEC3D& _fspi, po
 	kinematicConstraint::nconst = 1;
 	kinematicConstraint::maxnnz = 45;
 
-	f_c = (fj->getPosition() + fj->toGlobal(fspj) - fi->getPosition() - fi->toGlobal(fspi)).length();
-	s_c = (sj->getPosition() + sj->toGlobal(sspj) - si->getPosition() - si->toGlobal(sspi)).length();
+	f_c = (fj->Position() + fj->toGlobal(fspj) - fi->Position() - fi->toGlobal(fspi)).length();
+	s_c = (sj->Position() + sj->toGlobal(sspj) - si->Position() - si->toGlobal(sspi)).length();
 
 	pre_f_c = f_c;
 }
@@ -40,18 +40,18 @@ void cableConstraint::setApplyCableForceMass(pointMass* acm)
 
 // void cableConstraint::constraintEquation(int sr, double* rhs, double mul)
 // {
-// 	VEC3D fdij = fj->getPosition() + fj->toGlobal(fspj) - fi->getPosition() - fi->toGlobal(fspi);
+// 	VEC3D fdij = fj->Position() + fj->toGlobal(fspj) - fi->Position() - fi->toGlobal(fspi);
 // 	double fc = fdij.length() - f_c;
-// 	VEC3D sdij = sj->getPosition() + sj->toGlobal(sspj) - si->getPosition() - si->toGlobal(sspi);
+// 	VEC3D sdij = sj->Position() + sj->toGlobal(sspj) - si->Position() - si->toGlobal(sspi);
 // 	double sc = sdij.length() - s_c;
 // 	rhs[sr] = mul * (fc + sc);
 // }
 
 void cableConstraint::constraintEquation(double m, double* rhs)
 {
-	VEC3D fdij = fj->getPosition() + fj->toGlobal(fspj) - fi->getPosition() - fi->toGlobal(fspi);
+	VEC3D fdij = fj->Position() + fj->toGlobal(fspj) - fi->Position() - fi->toGlobal(fspi);
 	double fc = fdij.length() - f_c;
-	VEC3D sdij = sj->getPosition() + sj->toGlobal(sspj) - si->getPosition() - si->toGlobal(sspi);
+	VEC3D sdij = sj->Position() + sj->toGlobal(sspj) - si->Position() - si->toGlobal(sspi);
 	double sc = sdij.length() - s_c;
 	rhs[srow] = m * (fc + sc);
 }
@@ -59,8 +59,8 @@ void cableConstraint::constraintEquation(double m, double* rhs)
 void cableConstraint::constraintJacobian(SMATD& cjaco)
 {
 	//updateCableInitLength();
-	VEC3D fdij = fj->getPosition() + fj->toGlobal(fspj) - fi->getPosition() - fi->toGlobal(fspi);
-	VEC3D sdij = sj->getPosition() + sj->toGlobal(sspj) - si->getPosition() - si->toGlobal(sspi);
+	VEC3D fdij = fj->Position() + fj->toGlobal(fspj) - fi->Position() - fi->toGlobal(fspi);
+	VEC3D sdij = sj->Position() + sj->toGlobal(sspj) - si->Position() - si->toGlobal(sspi);
 	//int ic = 0, jc = 0;
 	// 	if (fdij.length() > f_c)
 	// 		ispulling = true;
@@ -106,8 +106,8 @@ void cableConstraint::constraintJacobian(SMATD& cjaco)
 // void cableConstraint::constraintJacobian(int sr, SMATD& cjaco)
 // {
 // 	//updateCableInitLength();
-// 	VEC3D fdij = fj->getPosition() + fj->toGlobal(fspj) - fi->getPosition() - fi->toGlobal(fspi);
-// 	VEC3D sdij = sj->getPosition() + sj->toGlobal(sspj) - si->getPosition() - si->toGlobal(sspi);
+// 	VEC3D fdij = fj->Position() + fj->toGlobal(fspj) - fi->Position() - fi->toGlobal(fspi);
+// 	VEC3D sdij = sj->Position() + sj->toGlobal(sspj) - si->Position() - si->toGlobal(sspi);
 // 	int ic = 0, jc = 0;
 // // 	if (fdij.length() > f_c)
 // // 		ispulling = true;
@@ -169,8 +169,8 @@ void cableConstraint::saveCableConstraintData(QTextStream& qts)
 
 void cableConstraint::updateCableInitLength()
 {
-	f_c = (fj->getPosition() + fj->toGlobal(fspj) - fi->getPosition() - fi->toGlobal(fspi)).length();
-	s_c = (sj->getPosition() + sj->toGlobal(sspj) - si->getPosition() - si->toGlobal(sspi)).length();
+	f_c = (fj->Position() + fj->toGlobal(fspj) - fi->Position() - fi->toGlobal(fspi)).length();
+	s_c = (sj->Position() + sj->toGlobal(sspj) - si->Position() - si->toGlobal(sspi)).length();
 	pre_f_c = f_c;
 }
 
@@ -181,7 +181,7 @@ void cableConstraint::calculation_reaction_force2body()
 	out.alloc(14);
 	jaco.alloc(14, 1, 14);
 	constraintJacobian(jaco);
-	double cur_f_c = (fj->getPosition() + fj->toGlobal(fspj) - fi->getPosition() - fi->toGlobal(fspi)).length();
+	double cur_f_c = (fj->Position() + fj->toGlobal(fspj) - fi->Position() - fi->toGlobal(fspi)).length();
 	if (cur_f_c > pre_f_c)
 	{
 		for (unsigned int i = 0; i < jaco.nnz(); i++)
@@ -220,8 +220,8 @@ void cableConstraint::calculation_reaction_force(double ct)
 	};
 	model::rs->insertReactionForceResult(nm, rfd);// .push_back(rfd);
 
-	model::rs->insertGLineData(nm + "_f_0", fi->getPosition() + fi->toGlobal(fspi));
-	model::rs->insertGLineData(nm + "_f_1", fj->getPosition() + fj->toGlobal(fspj));
-	model::rs->insertGLineData(nm + "_s_0", si->getPosition() + si->toGlobal(sspi));
-	model::rs->insertGLineData(nm + "_s_1", sj->getPosition() + sj->toGlobal(sspj));
+	model::rs->insertGLineData(nm + "_f_0", fi->Position() + fi->toGlobal(fspi));
+	model::rs->insertGLineData(nm + "_f_1", fj->Position() + fj->toGlobal(fspj));
+	model::rs->insertGLineData(nm + "_s_0", si->Position() + si->toGlobal(sspi));
+	model::rs->insertGLineData(nm + "_s_1", sj->Position() + sj->toGlobal(sspj));
 }

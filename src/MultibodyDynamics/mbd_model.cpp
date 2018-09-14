@@ -20,7 +20,7 @@ mbd_model::mbd_model()
 	, is2D(false)
 {
 	ground = new pointMass(QString("ground"), pointMass::GROUND);
-	//GLWidget::GLObject()->makeMarker("ground", ground->getPosition());
+	//GLWidget::GLObject()->makeMarker("ground", ground->Position());
 	ground->setID(-1);
 }
 
@@ -31,14 +31,14 @@ mbd_model::mbd_model(QString _name)
 	, is2D(false)
 {
 	ground = new pointMass(QString("ground"), pointMass::GROUND);
-	//GLWidget::GLObject()->makeMarker("ground",  ground->getPosition());
+	//GLWidget::GLObject()->makeMarker("ground",  ground->Position());
 	ground->setID(-1);
 }
 
 mbd_model::~mbd_model()
 {
 	if (ground) delete ground; ground = NULL;
-	qDeleteAll(masses);
+	//qDeleteAll(masses);
 	qDeleteAll(consts);
 	qDeleteAll(forces);
 }
@@ -124,12 +124,12 @@ kinematicConstraint* mbd_model::createCableConstraint(QString _name, pointMass* 
 		_name, fi, fspi, fj, fspj, si, sspi, sj, sspj);
 	cables[_name] = cable;
 	consts[_name] = cable;
-	VEC3D sp = fi->getPosition() + fi->toGlobal(fspi);
-	VEC3D ep = fj->getPosition() + fj->toGlobal(fspj);
+	VEC3D sp = fi->Position() + fi->toGlobal(fspi);
+	VEC3D ep = fj->Position() + fj->toGlobal(fspj);
 	//GLWidget::GLObject()->createLine(_name + "_f", sp.x, sp.y, sp.z, ep.x, ep.y, ep.z);
 
-	sp = si->getPosition() + si->toGlobal(sspi);
-	ep = sj->getPosition() + sj->toGlobal(sspj);
+	sp = si->Position() + si->toGlobal(sspi);
+	ep = sj->Position() + sj->toGlobal(sspj);
 	//GLWidget::GLObject()->createLine(_name + "_s", sp.x, sp.y, sp.z, ep.x, ep.y, ep.z);
 	return cable;
 }
@@ -237,6 +237,16 @@ axialRotationForce* mbd_model::createAxialRotationForce(QTextStream& qts)
 	//arf->setForceValue(fv);
 }
 
+contactPair* mbd_model::createContactPair(
+	QString _nm, pointMass* ib, pointMass* jb)
+{
+	contactPair* cp = new contactPair(_nm);
+	cp->setFirstBody(ib);
+	cp->setSecondBody(jb);
+	cpairs[_nm] = cp;
+	return cp;
+}
+
 void mbd_model::set2D_Mode(bool b)
 {
 	is2D = b;
@@ -245,6 +255,15 @@ void mbd_model::set2D_Mode(bool b)
 bool mbd_model::mode2D()
 {
 	return is2D;
+}
+
+pointMass* mbd_model::PointMass(QString& nm)
+{
+	QStringList l = masses.keys();
+	QStringList::const_iterator it = qFind(l, nm);
+	if (it == l.end())
+		return NULL;
+	return masses[nm];
 }
 
 rigidBody* mbd_model::createRigidBody(

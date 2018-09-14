@@ -93,6 +93,8 @@ void modelManager::OpenModel(QString file_path)
 		{
 			qts >> ch;
 			CreateModel(model::name, MBD, true);
+// 			if (ch == "END_DATA")
+// 				return;
 			mbd->setMBDModelName(ch);
 			mbd->Open(qts);
 		}

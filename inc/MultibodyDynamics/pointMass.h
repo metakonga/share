@@ -13,9 +13,9 @@ public:
 	virtual ~pointMass();
 
 	Type MassType() { return type; }
-	double getMass() { return ms; }
+	double Mass() { return ms; }
 	MAT33D getInertia() { return inertia; }
-	VEC3D getPosition() { return pos; }
+	VEC3D Position() { return pos; }
 	EPD getEP() { return ep; }
 	EPD getEV() { return ev; }
 	EPD getEA() { return ea; }
@@ -27,15 +27,15 @@ public:
 	VEC3D getHydroMoment() { return hm; }
 	VEC3D getVelocity() { return vel; }
 	VEC3D getAcceleration() { return acc; }
-	VEC3D getSymInertia() { return sym_iner; }
-	VEC3D getPriInertia() { return prin_iner; }
+	VEC3D SymetricInertia() { return sym_iner; }
+	VEC3D DiagonalInertia() { return diag_iner; }
 	VEC3D getAngularVelocity();
 
 	void setMassType(Type tp) { type = tp; }
 	void setMass(double _ms) { ms = _ms; }
 	void setSymetryInertia(double ixy, double ixz, double iyz);
 	void setDiagonalInertia(double ixx, double iyy, double izz);
-	void setInertia() { inertia.diagonal(POINTER3(prin_iner)); }
+	void setInertia() { inertia.diagonal(POINTER3(diag_iner)); }
 	void setPosition(VEC3D& _p) { pos = _p; }
 	void setVelocity(VEC3D& _v) { vel = _v; }
 	void setAcceleration(VEC3D& a) { acc = a; }
@@ -73,7 +73,7 @@ protected:
 	Type type;
 	double ms;				// pointMass of object
 	VEC3D sym_iner;			// Ixx, Iyy, Izz
-	VEC3D prin_iner;		// Ixy, Ixz, Iyz
+	VEC3D diag_iner;		// Ixy, Ixz, Iyz
 	MAT33D inertia;
 
 	double ang;

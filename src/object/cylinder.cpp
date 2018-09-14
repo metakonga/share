@@ -42,7 +42,7 @@ cylinder::~cylinder()
 //// 	mass* m = object::pointMass();
 //// 	ep = m->getEP();
 //// 	EPD ev = m->getEV(); 
-//// 	org = m->getPosition();
+//// 	org = m->Position();
 //// 	bpos = org + m->toGlobal(loc_bpos);
 //// 	tpos = org + m->toGlobal(loc_tpos);
 //// 	if (dci){

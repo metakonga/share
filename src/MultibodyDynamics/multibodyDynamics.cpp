@@ -157,12 +157,12 @@ void multibodyDynamics::calcMassMatrix(double mul /* = 1.0 */)
 	{
 		if (pm->NumDOF() == DIM2)
 		{
-			lhs(idx, idx) = lhs(idx + 1, idx + 1) = mul * pm->getMass();
-			lhs(idx + 2, idx + 2) = mul * pm->getPriInertia().z;
+			lhs(idx, idx) = lhs(idx + 1, idx + 1) = mul * pm->Mass();
+			lhs(idx + 2, idx + 2) = mul * pm->DiagonalInertia().z;
 		}
 		else
 		{
-			lhs(idx, idx) = lhs(idx + 1, idx + 1) = lhs(idx + 2, idx + 2) = mul * pm->getMass();
+			lhs(idx, idx) = lhs(idx + 1, idx + 1) = lhs(idx + 2, idx + 2) = mul * pm->Mass();
 		//	idx += 3;
 			MAT44D LTJL = 4.0*mul*transpose(pm->getEP().G(), pm->getInertia() * pm->getEP().G());
 			for (int j(0); j < 4; j++){
@@ -180,14 +180,14 @@ void multibodyDynamics::calcMassMatrix(double mul /* = 1.0 */)
 // 		if (md->mode2D())
 // 		{
 // 			int idx = m->ID() * 3;
-// 			lhs(idx, idx) = lhs(idx + 1, idx + 1) = mul * m->getMass();
+// 			lhs(idx, idx) = lhs(idx + 1, idx + 1) = mul * m->Mass();
 // 			lhs(idx + 2, idx + 2) = mul * m->getPriInertia().z;
 // 			//	cnt += 3;
 // 		}
 // 		else
 // 		{
 // 			int idx = m->ID() * 7;
-// 			lhs(idx, idx) = lhs(idx + 1, idx + 1) = lhs(idx + 2, idx + 2) = mul * m->getMass();
+// 			lhs(idx, idx) = lhs(idx + 1, idx + 1) = lhs(idx + 2, idx + 2) = mul * m->Mass();
 // 			idx += 3;
 // 			MAT44D LTJL = 4.0*mul*transpose(m->getEP().G(), m->getInertia() * m->getEP().G());
 // 			for (int j(0); j < 4; j++){
@@ -235,7 +235,7 @@ void multibodyDynamics::calcForceVector(VECD* vec)
 	unsigned int idx = 0;
 	foreach(pointMass* pm, md->pointMasses())
 	{
-		nf = pm->getMass() * g + pm->getCollisionForce() + pm->getExternalForce() + pm->getHydroForce();
+		nf = pm->Mass() * g + pm->getCollisionForce() + pm->getExternalForce() + pm->getHydroForce();
 		mm = calcMoment(pm->getEP(), pm->getCollisionMoment() + pm->getExternalMoment() + pm->getHydroMoment());
 		rf = calcInertiaForce(pm->getEV(), pm->getInertia(), pm->getEP());
 		//rf.x += mm.x; rf.y += mm.y; rf.z += mm.z; rf.w += mm.w;
@@ -306,14 +306,14 @@ bool multibodyDynamics::saveResult(double ct)
 		resultStorage::pointMassResultData pmr =
 		{
 			ct,
-			m->getPosition(),
+			m->Position(),
 			m->getEP(),
 			m->getVelocity(),
 			av,
 			m->getAcceleration(),
 			aa,
 			m->getEA(),
-			m->getMass() * model::gravity + m->getCollisionForce() + m->getExternalForce() + m->getHydroForce()
+			m->Mass() * model::gravity + m->getCollisionForce() + m->getExternalForce() + m->getHydroForce()
 		};
 		model::rs->insertPointMassResult(m->Name(), pmr);
 		//m->appendResultData(pmr);
@@ -333,13 +333,13 @@ bool multibodyDynamics::saveResult(double ct)
 	// 		qf_out.write((char*)m->name().toStdString().c_str(), sizeof(char) * m->name().size());
 	// 		qf_out.write((char*)&cnt, sizeof(unsigned int));
 	// 		qf_out.write((char*)&ct, sizeof(double));
-	// 		qf_out.write((char*)&(m->getPosition()), sizeof(VEC3D));
+	// 		qf_out.write((char*)&(m->Position()), sizeof(VEC3D));
 	// 		qf_out.write((char*)&(m->getEP()), sizeof(EPD));
 	// 		qf_out.write((char*)&(m->getVelocity()), sizeof(VEC3D));
 	// 		qf_out.write((char*)&(m->getEV()), sizeof(EPD));
 	// 		qf_out.write((char*)&(m->getAcceleration()), sizeof(VEC3D));
 	// 		qf_out.write((char*)&(m->getEA()), sizeof(EPD));
-	// 	//	m->getGeometryObject()->insertResultData(outCount, m->getPosition(), m->getEP());
+	// 	//	m->getGeometryObject()->insertResultData(outCount, m->Position(), m->getEP());
 	// 		cnt++;
 	// 	}
 	//outCount++;
@@ -375,7 +375,7 @@ void multibodyDynamics::prediction(unsigned int cs)
 	foreach(pointMass* pm, md->pointMasses())
 	{
 		for (int j = 0; j < 3; j++){
-			ipp(idx + j) = pm->getPosition()(j)+pm->getVelocity()(j)* simulation::dt + rhs(idx + j) * dt2accp;
+			ipp(idx + j) = pm->Position()(j)+pm->getVelocity()(j)* simulation::dt + rhs(idx + j) * dt2accp;
 			ipv(idx + j) = pm->getVelocity()(j)+rhs(idx + j) * dt2accv;
 		}
 		if (!(md->mode2D()))
@@ -530,7 +530,7 @@ void multibodyDynamics::calcConstraintSystemJacobian(double mul)
 					Dv = lagMul[sr + 0] * transpose(B(ib->getEP(), kconst->g_i()), B(jb->getEP(), kconst->h_j())) + lagMul[sr + 1] * transpose(B(ib->getEP(), kconst->f_i()), B(jb->getEP(), kconst->h_j())) + lagMul[sr + 4] * transpose(B(ib->getEP(), kconst->f_i()), B(jb->getEP(), kconst->f_j()));
 					m_lhs.plus(ic + 3, jc + 3, POINTER(Dv), MAT4x4);
 				}
-				dij = (jb->getPosition() + jb->toGlobal(kconst->sp_j())) - (ib->getPosition() + ib->toGlobal(kconst->sp_i()));
+				dij = (jb->Position() + jb->toGlobal(kconst->sp_j())) - (ib->Position() + ib->toGlobal(kconst->sp_i()));
 				Bv = -lagMul[sr + 2] * B(ib->getEP(), kconst->f_i()) - lagMul[sr + 3] * B(ib->getEP(), kconst->g_i());
 				m_lhs.plus(ic + 0, ic + 3, POINTER(Bv), MAT3X4);
 				m_lhs.plus(ic + 3, ic + 0, POINTER(Bv), MAT4x3);

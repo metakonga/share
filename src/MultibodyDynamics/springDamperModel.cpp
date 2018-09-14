@@ -28,8 +28,8 @@ springDamperModel::springDamperModel(
 	, dl(0)
 {
 	init_l = (actionLoc - baseLoc).length();
-	spi = base->toLocal(baseLoc - base->getPosition());
-	spj = action->toLocal(actionLoc - action->getPosition());
+	spi = base->toLocal(baseLoc - base->Position());
+	spj = action->toLocal(actionLoc - action->Position());
 }
 
 springDamperModel::~springDamperModel()
@@ -43,7 +43,7 @@ void springDamperModel::calcForce(VECD* rhs)
 	VEC4D QRi;
 	VEC3D Qj;
 	VEC4D QRj;
-	L = action->getPosition() + action->toGlobal(spj) - base->getPosition() - base->toGlobal(spi);
+	L = action->Position() + action->toGlobal(spj) - base->Position() - base->toGlobal(spi);
 	l = L.length();
 	VEC3D dL = action->getVelocity() + B(action->getEV(), spj) * action->getEP() - base->getVelocity() - B(base->getEV(), spi) * base->getEP();
 	dl = L.dot(dL) / l;

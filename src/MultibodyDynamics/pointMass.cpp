@@ -6,7 +6,7 @@
 
 pointMass::pointMass()
 	: object()
-	, ms(0.0)
+	, ms(0)
 	, ang(0.0)
 {
 	ep.e0 = 1.0;
@@ -15,8 +15,8 @@ pointMass::pointMass()
 
 pointMass::pointMass(QString& _name, geometry_type gt, geometry_use gu)
 	: object(_name, gt, gu)
-	, ms(0.0)
 	, ang(0.0)
+	, ms(0)
 	, type(RIGID)
 {
 	ep.e0 = 1.0;
@@ -26,8 +26,8 @@ pointMass::pointMass(QString& _name, geometry_type gt, geometry_use gu)
 
 pointMass::pointMass(QString& _name, Type _type)
 	: object(_name, NO_GEOMETRY_TYPE, MASS)
-	, ms(0.0)
 	, ang(0.0)
+	, ms(0)
 	, type(_type)
 {
 	ep.e0 = 1.0;
@@ -93,7 +93,7 @@ void pointMass::setSymetryInertia(double ixy, double ixz, double iyz)
 
 void pointMass::setDiagonalInertia(double ixx, double iyy, double izz)
 {
-	prin_iner = VEC3D(ixx, iyy, izz);
+	diag_iner = VEC3D(ixx, iyy, izz);
 }
 
 void pointMass::saveData(QTextStream& qts) const

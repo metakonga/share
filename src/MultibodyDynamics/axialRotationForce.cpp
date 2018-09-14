@@ -13,8 +13,8 @@ axialRotationForce::axialRotationForce(
 	, loc(_loc)
 	, u(_u)
 {
- 	spi = _a->toGlobal(loc - base->getPosition());
- 	spj = _b->toGlobal(loc - action->getPosition());
+ 	spi = _a->toGlobal(loc - base->Position());
+ 	spj = _b->toGlobal(loc - action->Position());
 }
 
 axialRotationForce::~axialRotationForce()
@@ -32,7 +32,7 @@ void axialRotationForce::calcForce(VECD* rhs)
 	VEC3D sp;
 	if (base->MassType() != pointMass::GROUND)
 	{
-		sp = base->getPosition() - loc;
+		sp = base->Position() - loc;
 		if (sp.x)
 			sp.x = 1.0 / sp.x;
 		if (sp.y)
@@ -51,7 +51,7 @@ void axialRotationForce::calcForce(VECD* rhs)
 	}
 	if (action->MassType() != pointMass::GROUND)
 	{
-		//sp;// = action->getPosition() - loc;
+		//sp;// = action->Position() - loc;
 		if(spj.x)
 			sp.x = 1.0 / spj.x;
 		if(spj.y)

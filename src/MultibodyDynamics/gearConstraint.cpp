@@ -112,8 +112,8 @@ gearConstraint::~gearConstraint()
 // 	unsigned int loc_sac = sac->getMatrixLocation();
 // 	rhs[sr + 1] = mul * (fd - cos(0.5 * fth));
 // 	rhs[sr + 2] = mul * (sd - cos(0.5 * sth));
-// // 	dthi = i->getPosition().z;
-// // 	dthj = j->getPosition().z;
+// // 	dthi = i->Position().z;
+// // 	dthj = j->Position().z;
 // // 	double v = (dthi - 0) * ratio + (dthj - 0);
 // // 	rhs[sr] = mul * v;// (thj //i->getEP().dot(j->getEP()) - cos(0.5 * v);
 // }
@@ -290,8 +290,8 @@ gearConstraint::~gearConstraint()
 
 void gearConstraint::constraintEquation(double m, double* rhs)
 {
-	dthi = ib->getPosition().z;
-	dthj = jb->getPosition().z;
+	dthi = ib->Position().z;
+	dthj = jb->Position().z;
 	double v = (dthi - 0) * ratio + (dthj - 0);
 	rhs[srow] = m * v;
 }

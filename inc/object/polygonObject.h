@@ -14,7 +14,7 @@ public:
 
 	//virtual unsigned int makeParticles(double rad, VEC3UI &_size, VEC3D& spacing, unsigned int nstack, bool isOnlyCount, VEC4D_PTR pos = NULL, unsigned int sid = 0);
 	//virtual void cuAllocData(unsigned int _np);
-	bool define(import_shape_type t, int ntriangle, double* vList, unsigned int *iList);
+	bool define(import_shape_type t, VEC3D& loc, int ntriangle, double* vList, unsigned int *iList);
 	void updateDeviceFromHost();
 
 // 	VEC3D Vertex0(unsigned int i) { return vertice[indice[i].x]; }
@@ -42,7 +42,7 @@ public:
 
 private:
 	void _fromMS3DASCII(int _ntriangle, double* vList, unsigned int *iList);
-	void _fromSTLASCII(int _ntriangle, double* vList);
+	void _fromSTLASCII(int _ntriangle, double* vList, VEC3D& loc);
 
 private:
 	static unsigned int nPolygonObject;

@@ -25,15 +25,25 @@ public:
 	double Poisson() const { return p; }
 	double Shear() const { return sm; }
 	unsigned int particleCount() const { return count; }
+	
+	double Volume() const { return vol; }
+	void setVolume(double _vol) { vol = _vol; }
 
 	void setRoll(geometry_use tr)  { roll_type = tr; }
 	void setID(unsigned int _id) { id = _id; }
 	void setMaterial(material_type _tm, double _y = 0, double _d = 0, double _p = 0, double _s = 0);
 
+	VEC3D DiagonalInertia0() { return dia_iner0; }
+	VEC3D SymetricInertia0() { return sym_iner0; }
+
 protected:
 	static unsigned int count;
 	dimension_type dim;
 	unsigned int id;	
+					// pointMass of object
+ 	VEC3D dia_iner0;			// Ixx, Iyy, Izz
+ 	VEC3D sym_iner0;		// Ixy, Ixz, Iyz
+	double vol;
 	QString name;
 	geometry_use roll_type;
 	geometry_type obj_type;

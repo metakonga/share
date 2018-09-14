@@ -12,6 +12,7 @@
 #include "artificialCoordinate.h"
 #include "model.h"
 #include "algebraMath.h"
+#include "contactPair.h"
 
 class forceElement;
 class axialRotationForce;
@@ -57,11 +58,14 @@ public:
 	axialRotationForce* createAxialRotationForce(QTextStream& qts);
 	artificialCoordinate* createArtificialCoordinate(QString _nm);
 
+	contactPair* createContactPair(QString _nm, pointMass* ib, pointMass* jb);
+
 	void set2D_Mode(bool b);
 	bool mode2D();
 	void setMBDModelName(QString _n) { mbd_model_name = _n; }
 	//QString& modelPath() { return model_path; }
 	QString& modelName() { return mbd_model_name; }
+	pointMass* PointMass(QString& nm);
 	QMap<QString, kinematicConstraint*>& kinConstraint() { return consts; }
 	QMap<QString, pointMass*>& pointMasses() { return masses; }
 	QMap<QString, forceElement*>& forceElements() { return forces; }
@@ -97,6 +101,7 @@ protected:
 	QMap<QString, gearConstraint*> gears;
 	QMap<QString, forceElement*> forces;
 	QMap<QString, artificialCoordinate*> acoordinates;
+	QMap<QString, contactPair*> cpairs;
 };
 
 #endif

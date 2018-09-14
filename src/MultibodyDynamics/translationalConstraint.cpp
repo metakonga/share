@@ -33,7 +33,7 @@ void translationalConstraint::constraintEquation(double m, double* rhs)
 		VEC3D v3f = ib->toGlobal(fi);
 		rhs[srow + 0] = m * v3.dot(v3f);
 		rhs[srow + 1] = m * v3.dot(v3g);
-		v3 = jb->getPosition() + jb->toGlobal(spj) - ib->getPosition();// -ib->toGlobal(kconst->sp_i());
+		v3 = jb->Position() + jb->toGlobal(spj) - ib->Position();// -ib->toGlobal(kconst->sp_i());
 		rhs[srow + 2] = m * (v3.dot(v3f) - spi.dot(fi));
 		rhs[srow + 3] = m * (v3.dot(v3g) - spi.dot(gi));
 		rhs[srow + 4] = m * v3f.dot(jb->toGlobal(fj));
@@ -48,7 +48,7 @@ void translationalConstraint::constraintJacobian(SMATD& cjaco)
 	}
 	else
 	{
-		VEC3D dij = (jb->getPosition() + jb->toGlobal(spj)) - (ib->getPosition() + ib->toGlobal(spi));
+		VEC3D dij = (jb->Position() + jb->toGlobal(spj)) - (ib->Position() + ib->toGlobal(spi));
 		if (ib->MassType() != pointMass::GROUND)
 		{
 			cjaco.extraction(srow + 0, icol + 3, POINTER(transpose(jb->toGlobal(hj), B(ib->getEP(), fi))), VEC4);

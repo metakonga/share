@@ -16,6 +16,7 @@ object::object()
 	, p(0)
 	, sm(0)
 	, id(0)
+	, vol(0)
 {
 
 }
@@ -31,6 +32,7 @@ object::object(QString _name, geometry_type _tobj, geometry_use _roll)
 	, p(0)
 	, sm(0)
 	, id(0)
+	, vol(0)
 {
 	id = count++;
 }
@@ -79,5 +81,7 @@ void object::setMaterial(material_type _tm, double _y /*= 0*/, double _d /*= 0*/
 		d = cmt.density;
 		p = cmt.poisson;
 		sm = cmt.shear;
+		//ms = vol * d;
 	}
+
 }

@@ -274,4 +274,6 @@ VEC3D local2global_bryant(VEC3D ang, VEC3D v)
 	return bryantAngle(ang.x, ang.y, ang.z) * v;
 }
 
+
+
 #endif

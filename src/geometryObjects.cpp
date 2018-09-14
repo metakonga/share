@@ -71,15 +71,17 @@ void geometryObjects::Open(QTextStream& qts)
 			QString _name, file;
 			int mt, gu, ist;
 			double e, p, d, s;
+			VEC3D loc;
 			qts >> ch >> _name
 				>> ch >> file
+				>> ch >> loc.x >> loc.y >> loc.z
 				>> ch >> mt
 				>> ch >> gu
 				>> ch >> ist
 				>> ch >> e >> p >> d >> s;
 			vpolygon* vp = GLWidget::GLObject()->makePolygonObject(_name, (import_shape_type)ist, file);
 			makePolygonObject(
-				_name, (geometry_use)gu, file, (import_shape_type)ist,
+				_name, (geometry_use)gu, file, (import_shape_type)ist,loc,
 				vp->NumTriangles(), vp->VertexList(), vp->IndexList(),
 				(material_type)mt, e, p, d, s);
 		}
@@ -153,18 +155,14 @@ plane* geometryObjects::makePlane(
 
 polygonObject* geometryObjects::makePolygonObject
 	(QString nm, geometry_use gu, QString file, import_shape_type t,
-	unsigned int ntri, double* vertexList, unsigned int* indexList,
+	VEC3D& loc, unsigned int ntri, double* vertexList, unsigned int* indexList,
 	material_type mt, double e, double p, double d, double s)
 {
-// 	int begin = file.lastIndexOf("/") + 1;
-// 	int end = file.lastIndexOf(".");
-// 	QString _nm = file.mid(begin, end - begin);
 	polygonObject* po = new polygonObject(nm, gu);
-	po->define(t, ntri, vertexList, indexList);
 	po->setMaterial(mt, e, d, p, s);
+	po->define(t, loc, ntri, vertexList, indexList);
 	objs[nm] = po;
 	pobjs[polygonObject::Number()] = po;
-	//GLWidget::GLObject()->makePolygonObject(po->Name(), t, file);
 	database::DB()->addChild(database::POLYGON_ROOT, po->Name());
 
 	QString log;
@@ -172,6 +170,7 @@ polygonObject* geometryObjects::makePolygonObject
 	qts << "OBJECT " << "polygon" << endl
 		<< "NAME " << nm << endl
 		<< "FILE " << file << endl
+		<< "CM " << loc.x << " " << loc.y << " " << loc.z << endl
 		<< "MATERIAL_TYPE " << (int)mt << endl
 		<< "GEOMETRY_USE " << (int)gu << endl
 		<< "IMPORT_SHAPE_TYPE " << (int)t << endl

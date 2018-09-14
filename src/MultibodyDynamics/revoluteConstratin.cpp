@@ -23,14 +23,14 @@ void revoluteConstraint::constraintEquation(double m, double* rhs)
 {
 	if (ib->NumDOF() == DIM2)
 	{
-		VEC3D v3 = jb->getPosition() + jb->toGlobal2D(spj) - ib->getPosition() - ib->toGlobal2D(spi);
+		VEC3D v3 = jb->Position() + jb->toGlobal2D(spj) - ib->Position() - ib->toGlobal2D(spi);
 		rhs[srow + 0] = m * v3.x;
 		rhs[srow + 1] = m * v3.y;
 	}
 	else
 	{
 		VEC3D v3;
-		v3 = jb->getPosition() + jb->toGlobal(spj) - ib->getPosition() - ib->toGlobal(spi);
+		v3 = jb->Position() + jb->toGlobal(spj) - ib->Position() - ib->toGlobal(spi);
 		rhs[srow + 0] = m * v3.x;
 		rhs[srow + 1] = m * v3.y;
 		rhs[srow + 2] = m * v3.z;
@@ -50,7 +50,7 @@ void revoluteConstraint::constraintJacobian(SMATD& cjaco)
 			int ic = ib->ID() * 3;
 			for (unsigned t(0); t < 2; t++)
 				cjaco(srow + t, ic + t) = -1;
-			double th = ib->getPosition().z;
+			double th = ib->Position().z;
 			cjaco(srow + 0, ic + 2) = -spi.x * sin(th) - spi.y * cos(th);
 			cjaco(srow + 1, ic + 2) = spi.x * cos(th) - spi.y * sin(th);
 		}
@@ -59,7 +59,7 @@ void revoluteConstraint::constraintJacobian(SMATD& cjaco)
 			int jc = jb->ID() * 3;
 			for (unsigned t(0); t < 2; t++)
 				cjaco(srow + t, jc + t) = 1;
-			double th = jb->getPosition().z;
+			double th = jb->Position().z;
 			cjaco(srow + 0, jc + 2) = -spj.x * sin(th) - spj.y * cos(th);
 			cjaco(srow + 1, jc + 2) = spj.x * cos(th) - spj.y * sin(th);
 		}

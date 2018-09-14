@@ -25,7 +25,7 @@ void sphericalConstraint::constraintEquation(double m, double* rhs)
 		return;
 	else
 	{
-		VEC3D v3 = jb->getPosition() + jb->toGlobal(spj) - ib->getPosition() - ib->toGlobal(spi);
+		VEC3D v3 = jb->Position() + jb->toGlobal(spj) - ib->Position() - ib->toGlobal(spi);
 		rhs[srow + 0] = m * v3.x;
 		rhs[srow + 1] = m * v3.y;
 		rhs[srow + 2] = m * v3.z;
