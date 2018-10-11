@@ -1,4 +1,5 @@
 #include "object.h"
+#include "vobject.h"
 #include <cuda_runtime.h>
 
 //unsigned int object::sid = 0;
@@ -17,6 +18,8 @@ object::object()
 	, sm(0)
 	, id(0)
 	, vol(0)
+	, vobj(NULL)
+	, marker(NULL)
 {
 
 }
@@ -33,6 +36,8 @@ object::object(QString _name, geometry_type _tobj, geometry_use _roll)
 	, sm(0)
 	, id(0)
 	, vol(0)
+	, vobj(NULL)
+	, marker(NULL)
 {
 	id = count++;
 }
@@ -54,6 +59,14 @@ object::object(const object& obj)
 object::~object()
 {
 
+}
+
+void object::updateView(VEC3D p, VEC3D r)
+{
+	vobj->setInitialPosition(p);
+	marker->setInitialPosition(p);
+	vobj->setInitialAngle(r);
+	marker->setInitialAngle(r);
 }
 
 // void object::setMaterial(tMaterial _tm)

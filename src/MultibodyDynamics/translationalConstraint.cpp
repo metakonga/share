@@ -1,4 +1,5 @@
 #include "translationalConstraint.h"
+#include <QDebug>
 
 translationalConstraint::translationalConstraint()
 	: kinematicConstraint()
@@ -49,8 +50,11 @@ void translationalConstraint::constraintJacobian(SMATD& cjaco)
 	else
 	{
 		VEC3D dij = (jb->Position() + jb->toGlobal(spj)) - (ib->Position() + ib->toGlobal(spi));
+		//qDebug() << "constraint : " << nm;
 		if (ib->MassType() != pointMass::GROUND)
 		{
+			//qDebug() << "i body : " << ib->Name();
+			
 			cjaco.extraction(srow + 0, icol + 3, POINTER(transpose(jb->toGlobal(hj), B(ib->getEP(), fi))), VEC4);
 			cjaco.extraction(srow + 1, icol + 3, POINTER(transpose(jb->toGlobal(hj), B(ib->getEP(), gi))), VEC4);
 			cjaco.extraction(srow + 2, icol + 0, POINTER((-fi)), POINTER(transpose(dij + ib->toGlobal(spi), B(ib->getEP(), fi))), VEC3_4);
@@ -59,6 +63,7 @@ void translationalConstraint::constraintJacobian(SMATD& cjaco)
 		}
 		if (jb->MassType() != pointMass::GROUND)
 		{
+			//qDebug() << "j body : " << jb->Name();
 			cjaco.extraction(srow + 0, jcol + 3, POINTER(transpose(ib->toGlobal(fi), B(jb->getEP(), hj))), VEC4);
 			cjaco.extraction(srow + 1, jcol + 3, POINTER(transpose(ib->toGlobal(gi), B(jb->getEP(), hj))), VEC4);
 			cjaco.extraction(srow + 2, jcol + 0, POINTER(ib->toGlobal(fi)), POINTER(transpose(ib->toGlobal(fi), B(jb->getEP(), spj))), VEC3_4);
@@ -66,4 +71,9 @@ void translationalConstraint::constraintJacobian(SMATD& cjaco)
 			cjaco.extraction(srow + 4, jcol + 3, POINTER(transpose(ib->toGlobal(fi), B(jb->getEP(), fj))), VEC4);
 		}
 	}
+}
+
+void translationalConstraint::derivate(MATD& lhs, double mul)
+{
+
 }

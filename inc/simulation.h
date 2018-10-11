@@ -1,6 +1,8 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
 
+#include "startingModel.h"
+
 class simulation
 {
 public:
@@ -14,7 +16,9 @@ public:
 	static void setGPUDevice();
 	static void setTimeStep(double _dt);
 	static void setCurrentTime(double _ct);
+	static void setStartTime(double _st);
 
+	static double start_time;
 	static double et;
 	static double init_dt;
 	static double dt;

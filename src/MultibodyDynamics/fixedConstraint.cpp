@@ -66,3 +66,8 @@ void fixedConstraint::constraintJacobian(SMATD& cjaco)
 		}
 	}
 }
+
+void fixedConstraint::derivate(MATD& lhs, double mul)
+{
+
+}

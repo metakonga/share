@@ -7,51 +7,55 @@
 
 class kinematicConstraint;
 
-enum drivingConstraintType{ DRIVING_DISPLACEMENT = 0, DRIVING_VELOCITY, DRIVING_ACCELERATION };
+
 
 class drivingConstraint
 {
 public:
-	
+	enum Type{ DRIVING_TRANSLATION = 0, DRIVING_ROTATION };
 	drivingConstraint();
-	drivingConstraint(QString& _name);
+	drivingConstraint(QString _name);
 	~drivingConstraint();
 
-	void define(kinematicConstraint* kc, drivingConstraintType td, double val);
-	void driving(double time);
+	void define(kinematicConstraint* kc, Type td, double init, double cont);
 	QString& getName() { return name; }
-	size_t startRow() { return srow; }
-	size_t startColumn() { return scol; }
-	bool use(int i) { return use_p[i]; }
+	unsigned int startRow() { return srow; }
+//	unsigned int startColumn() { return scol; }
+	//bool use(int i) { return use_p[i]; }
 	int maxNNZ() { return maxnnz; }
-
-	double constraintEquation(double ct);
+	//pointMass* ActionBody(){ return m; }
+	void updateInitialCondition();
+	//double constraintEquation(double ct);
+	virtual void constraintEquation(double m, double* rhs);
+	virtual void constraintJacobian(SMATD& cjaco);
 	//virtual void constraintEquation2D(double m) {};
 
-	void setStartRow(size_t _sr) { srow = _sr; }
+	void setStartRow(unsigned int _sr) { srow = _sr; }
+	//void setStartColumn(unsigned int _sc) { scol = _sc; }
+	void setStartTime(double st) { start_time = st; }
+	void setPlusTime(double pt) { plus_time = pt; }
+	void saveData(QTextStream& qts);
+
+// private:
+// 	void updateEV(double time);
+// 	void updateV(double time);
+// 	double vel_rev_CE(double time);
+// 	double vel_tra_CE(double time);
+// 	void(drivingConstraint::*update_func)(double time);
+// 	double(drivingConstraint::*ce_func)(double time);
 
 private:
-	void updateEV(double time);
-	void updateV(double time);
-	double vel_rev_CE(double time);
-	double vel_tra_CE(double time);
-	void(drivingConstraint::*update_func)(double time);
-	double(drivingConstraint::*ce_func)(double time);
-
-private:
-	bool use_p[7];
+	double plus_time;
+	double start_time;
 	int maxnnz;
-	size_t srow;
-	size_t scol;
+	double init_v;
+	double cons_v;
+	double theta;
+	unsigned int srow;
+	//unsigned int scol;
 	QString name;
-	VEC3D direction;
-	VEC3D mple_t;
-	VEC3D init_t;
-	EPD mple_e;
-	EPD init_e;
 	kinematicConstraint* kconst;
-	drivingConstraintType type;
-	pointMass* m;
+	Type type;
 };
 
 #endif

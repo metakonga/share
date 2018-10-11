@@ -6,10 +6,10 @@
 class pointMass : public object
 {
 public:
-	enum Type { GROUND = 0, RIGID, FLEXIBLE };
+	enum Type { GROUND = 0, RIGID_BODY };
 	pointMass();
 	pointMass(QString& _name, geometry_type gt, geometry_use gu);
-	pointMass(QString& _name, Type _type);
+	pointMass(QString& _name);
 	virtual ~pointMass();
 
 	Type MassType() { return type; }
@@ -38,6 +38,7 @@ public:
 	void setInertia() { inertia.diagonal(POINTER3(diag_iner)); }
 	void setPosition(VEC3D& _p) { pos = _p; }
 	void setVelocity(VEC3D& _v) { vel = _v; }
+	void setRotationalVelocity(VEC3D& rv);
 	void setAcceleration(VEC3D& a) { acc = a; }
 	void setHydroForce(VEC3D& _hf) { hf = _hf; }
 	void setHydroMoment(VEC3D& _hm) { hm = _hm; }
@@ -52,7 +53,7 @@ public:
 	void setEP(EPD& _ep) { ep = _ep; }
 	void setEV(EPD& _ev) { ev = _ev; }
 	void setEA(EPD& _ea) { ea = _ea; }
-	void saveData(QTextStream& ts) const;
+	void saveData(QTextStream& ts);
 	void openData(QTextStream& ts);
 	void makeTransformationMatrix();
 	void makeTransformationMatrix2D();

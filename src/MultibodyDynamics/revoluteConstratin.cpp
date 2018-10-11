@@ -85,3 +85,8 @@ void revoluteConstraint::constraintJacobian(SMATD& cjaco)
 		}
 	}
 }
+
+void revoluteConstraint::derivate(MATD& lhs, double mul)
+{
+
+}

@@ -40,6 +40,7 @@ public:
 	VEC3D g_i() const { return gi; }
 	VEC3D g_j() const { return gj; }
 	VEC3D location() const;
+	VEC3D CurrentDistance();
 
 	int startRow() const { return srow; }
 	int iColumn() const { return icol; }
@@ -63,6 +64,7 @@ public:
 	virtual void calculation_reaction_force(double ct) = 0;
 	virtual void constraintEquation(double m, double* rhs) = 0;
 	virtual void constraintJacobian(SMATD& cjaco) = 0;
+	virtual void derivate(MATD& lhs, double mul) = 0;
 
 	//virtual void constraintEquation();
 

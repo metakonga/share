@@ -8,6 +8,11 @@ errors::errors()
 
 }
 
+errors::~errors()
+{
+
+}
+
 void errors::Error(QString &target)
 {
 	QString msg;
@@ -18,6 +23,9 @@ void errors::Error(QString &target)
 		qts << "Fail model : " + target << endl
 			<< "Problem : Exceed the N-R iteration number." << endl
 			<< "Tip : Check your multi-body model" << endl;
+		break;
 	}
+	if (msg.isEmpty())
+		return;
 	messageBox::run(msg);
 }

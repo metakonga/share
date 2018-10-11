@@ -40,7 +40,7 @@ public:
 	virtual void calculation_reaction_force(double ct) {};
 	virtual void constraintEquation(double m, double* rhs);
 	virtual void constraintJacobian(SMATD& cjaco);
-
+	virtual void derivate(MATD& lhs, double mul);
 
 private:
 	pointMass *g;

@@ -72,8 +72,10 @@ void geometryObjects::Open(QTextStream& qts)
 			int mt, gu, ist;
 			double e, p, d, s;
 			VEC3D loc;
-			qts >> ch >> _name
-				>> ch >> file
+			qts >> ch >> _name >> ch;
+			file = qts.readLine();
+			file.remove(0, 1);
+			qts //>> ch >> file
 				>> ch >> loc.x >> loc.y >> loc.z
 				>> ch >> mt
 				>> ch >> gu

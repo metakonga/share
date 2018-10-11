@@ -20,20 +20,21 @@ public:
 	multibodyDynamics();
 	multibodyDynamics(mbd_model *_md);
 	virtual ~multibodyDynamics();
-	bool initialize();
+	bool initialize(startingModel* stm = NULL);
 
 	void prediction(unsigned int cs);
-	bool correction(unsigned int cs);
+	int correction(unsigned int cs);
 	double oneStepCorrection();
 
 	bool saveResult(double ct);
+	void saveFinalResult(QFile& qf);
 
 	unsigned int getOutCount() { return outCount; }
 	unsigned int N_NR_Iteration();
 
 	mbd_model* MbdModel() { return md; }
 
-	bool oneStepAnalysis(double ct, unsigned int cstep);
+	int oneStepAnalysis(double ct, unsigned int cstep);
 	void calcReactionForce(double ct);
 	//bool cpuRun();
 
@@ -79,7 +80,7 @@ private:
 	void sparseConstraintJacobian();
 
 	void calcMassSystemJacobian(double mul);
-	void calcForceSystemJacobian();
+	void calcForceSystemJacobian(double gamma, double beta);
 	void calcConstraintSystemJacobian(double mul);
 
 	MAT44D D(VEC3D& a, VEC3D& lag);

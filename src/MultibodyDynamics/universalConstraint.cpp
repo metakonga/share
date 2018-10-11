@@ -62,3 +62,8 @@ void universalConstraint::constraintJacobian(SMATD& cjaco)
 		}
 	}
 }
+
+void universalConstraint::derivate(MATD& lhs, double mul)
+{
+
+}

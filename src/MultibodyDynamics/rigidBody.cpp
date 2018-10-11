@@ -1,13 +1,13 @@
 #include "rigidBody.h"
 
 rigidBody::rigidBody(QString _name)
-	: pointMass(_name, RIGID)
+	: pointMass(_name)
 {
 
 }
 
 rigidBody::rigidBody()
-	: pointMass(QString(""), RIGID)
+	: pointMass(QString(""))
 {
 	
 }

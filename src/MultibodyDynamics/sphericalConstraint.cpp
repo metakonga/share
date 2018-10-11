@@ -53,3 +53,8 @@ void sphericalConstraint::constraintJacobian(SMATD& cjaco)
 		}
 	}
 }
+
+void sphericalConstraint::derivate(MATD& lhs, double mul)
+{
+
+}

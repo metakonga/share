@@ -202,20 +202,35 @@ inline MAT33D tilde(VEC3D& v)
 
 inline VEC3D ep2e(EPD& ep)
 {
-	double m33 = 2.0 * (ep.e0 * ep.e0 + ep.e3 * ep.e3 - 0.5);
-	if (m33 < 1.0e-15)
-	{
-		m33 = 0.0;
-	}
-	if (m33 > 1.0)
-	{
-
-		m33 = 1.0;
-	}
+	//double m33 = 2.0 * (ep.e0 * ep.e0 + ep.e3 * ep.e3 - 0.5);
+	double m13 = 2.0 * (ep.e1 * ep.e3 + ep.e0 * ep.e2);
+	double m23 = 2.0 * (ep.e2 * ep.e3 - ep.e0 * ep.e1);
+	double m33 = ep.e0*ep.e0 - ep.e1*ep.e1 - ep.e2*ep.e2 + ep.e3*ep.e3;
+	double m31 = 2.0 * (ep.e1 * ep.e3 - ep.e0 * ep.e2);
+	double m32 = 2.0 * (ep.e2 * ep.e3 + ep.e0 * ep.e1);
+// 	if (m33 < 1.0e-15)
+// 	{
+// 		m33 = 0.0;
+// 	}
+// 	if (m33 > 1.0)
+// 	{
+// 
+// 		m33 = 1.0;
+// 	}
 	return VEC3D(
-		atan2(2.0 * (ep.e0 * ep.e1 + ep.e2 * ep.e3), 1.0 - 2.0 * (ep.e1 * ep.e1 + ep.e2 * ep.e2)),
-		asin(2.0 * (ep.e0 * ep.e2 - ep.e3 * ep.e1)),
-		atan2(2.0 * (ep.e0 * ep.e3 + ep.e1 * ep.e2), 1.0 - 2.0 * (ep.e2 * ep.e2 + ep.e3 * ep.e3)));
+		atan2(m13, -m23),
+		atan2(sqrt(1 - m33 * m33), m33),
+		atan2(m31, m32));
+}
+
+inline EPD e2ep(VEC3D& e)
+{
+	EPD ep;
+	ep.e0 = cos(0.5 * e.y) * cos(0.5 * (e.x + e.z));
+	ep.e1 = sin(0.5 * e.y) * cos(0.5 * (e.x - e.z));
+	ep.e2 = sin(0.5 * e.y) * sin(0.5 * (e.x - e.z));
+	ep.e3 = cos(0.5 * e.y) * sin(0.5 * (e.x + e.z));
+	return ep;
 }
 
 inline VEC3D global2local_eulerAngle(MAT33D& t, VEC3D& v)

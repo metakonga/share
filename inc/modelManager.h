@@ -10,6 +10,7 @@
 
 #include "FullCarModel.hpp"
 #include "SliderCrank3D.hpp"
+#include "test_model.hpp"
 
 class modelManager
 {
@@ -49,6 +50,7 @@ public:
 
 	bool defineFullCarModel();
 	void defineSliderCrank3D();
+	bool defineTestModel();
 
 private:
 	QMap<QString, geometryObjects*> objs;

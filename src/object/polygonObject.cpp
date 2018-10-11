@@ -146,6 +146,18 @@ void polygonObject::_fromSTLASCII(int _ntriangle, double* vList, VEC3D& loc)
 		ixy -= ctri.x * ctri.y;
 		ixz -= ctri.x * ctri.z;
 		iyz -= ctri.y * ctri.z;
+		P = this->toLocal(P - pos);
+		Q = this->toLocal(Q - pos);
+		R = this->toLocal(R - pos);
+		vList[i * 9 + 0] = P.x;
+		vList[i * 9 + 1] = P.y;
+		vList[i * 9 + 2] = P.z;
+		vList[i * 9 + 3] = Q.x;
+		vList[i * 9 + 4] = Q.y;
+		vList[i * 9 + 5] = Q.z;
+		vList[i * 9 + 6] = R.x;
+		vList[i * 9 + 7] = R.y;
+		vList[i * 9 + 8] = R.z;
 	}
 	object::vol = _vol;
 	object::dia_iner0 = VEC3D(ixx, iyy, izz) / ntriangle;
@@ -175,60 +187,60 @@ void polygonObject::updateDeviceFromHost()
 	//checkCudaErrors(cudaMemcpy(d_mass, h_mass, sizeof(device_polygon_mass_info), cudaMemcpyHostToDevice));
 }
 
-//void polygonObject::update(pointMass* pm)
-//{
-//// 	mass* m = object::pointMass();
-//// 	VEC3D vel = m->getVelocity();
-//// 	EPD ep = m->getEP();
-//// 	EPD ev = m->getEV();
-//// 	org = m->Position();
-//// 	VEC3D *g_vertice = new VEC3D[nvertex];
-//// 	for(unsigned int i = 0; i < nvertex; i++){
-//// 		g_vertice[i] = org + m->toGlobal(vertice[i]);
-//// 	}
-//// 	for (unsigned int i = 0; i < nindex; i++){
-//// 		//fc = 0;
-//// 		//VEC3D psph = org + m->toGlobal(VEC3D(h_sph[i].x, h_sph[i].y, h_sph[i].z));
-//// 		host_polygon_info po;
-//// 		po.P = g_vertice[indice[i].x];
-//// 		po.Q = g_vertice[indice[i].y];
-//// 		po.R = g_vertice[indice[i].z];
-//// 		po.V = po.Q - po.P;
-//// 		po.W = po.R - po.P;
-//// 		po.N = po.V.cross(po.W);
-//// 		po.N = po.N / po.N.length();
-//// 		h_poly[i] = po;
-//// 		VEC3D M1 = (po.Q + po.P) / 2;
-//// 		VEC3D M2 = (po.R + po.P) / 2;
-//// 		VEC3D D1 = po.N.cross(po.V);
-//// 		VEC3D D2 = po.N.cross(po.W);
-//// 		double t = 0;//t = (D2.x*(M1.y - M2.y)) / (D1.x*D2.y - D1.y*D2.x) - (D2.y*(M1.x - M2.x)) / (D1.x*D2.y - D1.y*D2.x);
-//// 		if (abs(D1.x*D2.y - D1.y*D2.x) > 1E-13)
-//// 		{
-//// 			t = (D2.x*(M1.y - M2.y)) / (D1.x*D2.y - D1.y*D2.x) - (D2.y*(M1.x - M2.x)) / (D1.x*D2.y - D1.y*D2.x);
-//// 		}
-//// 		else if (abs(D1.x*D2.z - D1.z*D2.x) > 1E-13)
-//// 		{
-//// 			t = (D2.x*(M1.z - M2.z)) / (D1.x*D2.z - D1.z*D2.x) - (D2.z*(M1.x - M2.x)) / (D1.x*D2.z - D1.z*D2.x);
-//// 		}
-//// 		else if (abs(D1.y*D2.z - D1.z*D2.y) > 1E-13)
-//// 		{
-//// 			t = (D2.y*(M1.z - M2.z)) / (D1.y*D2.z - D1.z*D2.y) - (D2.z*(M1.y - M2.y)) / (D1.y*D2.z - D1.z*D2.y);
-//// 		}
-//// 		VEC3D Ctri = M1 + t * D1;
-//// 		VEC4D sph;
-//// 		sph.w = (Ctri - po.P).length();
-//// 		sph.x = Ctri.x; sph.y = Ctri.y; sph.z = Ctri.z;
-//// 		h_sph[i] = sph;
-//// 		//h_sph[i] = VEC4D(psph.x, psph.y, psph.z, h_sph[i].w);
-//// 	}
-//// 	h_mass->origin = org;
-//// 	h_mass->vel = vel;
-//// 	h_mass->omega = VEC3D(
-//// 		2.0*(-ep.e1 * ev.e0 + ep.e0 * ev.e1 - ep.e3 * ev.e2 + ep.e2 * ev.e3),
-//// 		2.0*(-ep.e2 * ev.e0 + ep.e3 * ev.e1 + ep.e0 * ev.e2 - ep.e1 * ev.e3),
-//// 		2.0*(-ep.e3 * ev.e0 - ep.e2 * ev.e1 + ep.e1 * ev.e2 + ep.e0 * ev.e3));
-//// 	h_mass->ep = ep;
-//// 	updateDeviceFromHost();
-//// 	delete[] g_vertice; g_vertice = NULL;
-//}
+// void polygonObject::update(pointMass* pm)
+// {
+//  	mass* m = object::pointMass();
+//  	VEC3D vel = m->getVelocity();
+//  	EPD ep = m->getEP();
+//  	EPD ev = m->getEV();
+//  	org = m->Position();
+//  	VEC3D *g_vertice = new VEC3D[nvertex];
+//  	for(unsigned int i = 0; i < nvertex; i++){
+//  		g_vertice[i] = org + m->toGlobal(vertice[i]);
+//  	}
+//  	for (unsigned int i = 0; i < nindex; i++){
+//  		//fc = 0;
+//  		//VEC3D psph = org + m->toGlobal(VEC3D(h_sph[i].x, h_sph[i].y, h_sph[i].z));
+//  		host_polygon_info po;
+//  		po.P = g_vertice[indice[i].x];
+//  		po.Q = g_vertice[indice[i].y];
+//  		po.R = g_vertice[indice[i].z];
+//  		po.V = po.Q - po.P;
+//  		po.W = po.R - po.P;
+//  		po.N = po.V.cross(po.W);
+//  		po.N = po.N / po.N.length();
+//  		h_poly[i] = po;
+//  		VEC3D M1 = (po.Q + po.P) / 2;
+//  		VEC3D M2 = (po.R + po.P) / 2;
+//  		VEC3D D1 = po.N.cross(po.V);
+//  		VEC3D D2 = po.N.cross(po.W);
+//  		double t = 0;//t = (D2.x*(M1.y - M2.y)) / (D1.x*D2.y - D1.y*D2.x) - (D2.y*(M1.x - M2.x)) / (D1.x*D2.y - D1.y*D2.x);
+//  		if (abs(D1.x*D2.y - D1.y*D2.x) > 1E-13)
+//  		{
+//  			t = (D2.x*(M1.y - M2.y)) / (D1.x*D2.y - D1.y*D2.x) - (D2.y*(M1.x - M2.x)) / (D1.x*D2.y - D1.y*D2.x);
+//  		}
+//  		else if (abs(D1.x*D2.z - D1.z*D2.x) > 1E-13)
+//  		{
+//  			t = (D2.x*(M1.z - M2.z)) / (D1.x*D2.z - D1.z*D2.x) - (D2.z*(M1.x - M2.x)) / (D1.x*D2.z - D1.z*D2.x);
+//  		}
+//  		else if (abs(D1.y*D2.z - D1.z*D2.y) > 1E-13)
+//  		{
+//  			t = (D2.y*(M1.z - M2.z)) / (D1.y*D2.z - D1.z*D2.y) - (D2.z*(M1.y - M2.y)) / (D1.y*D2.z - D1.z*D2.y);
+//  		}
+//  		VEC3D Ctri = M1 + t * D1;
+//  		VEC4D sph;
+//  		sph.w = (Ctri - po.P).length();
+//  		sph.x = Ctri.x; sph.y = Ctri.y; sph.z = Ctri.z;
+//  		h_sph[i] = sph;
+//  		//h_sph[i] = VEC4D(psph.x, psph.y, psph.z, h_sph[i].w);
+//  	}
+//  	h_mass->origin = org;
+//  	h_mass->vel = vel;
+//  	h_mass->omega = VEC3D(
+//  		2.0*(-ep.e1 * ev.e0 + ep.e0 * ev.e1 - ep.e3 * ev.e2 + ep.e2 * ev.e3),
+//  		2.0*(-ep.e2 * ev.e0 + ep.e3 * ev.e1 + ep.e0 * ev.e2 - ep.e1 * ev.e3),
+//  		2.0*(-ep.e3 * ev.e0 - ep.e2 * ev.e1 + ep.e1 * ev.e2 + ep.e0 * ev.e3));
+//  	h_mass->ep = ep;
+//  	updateDeviceFromHost();
+//  	delete[] g_vertice; g_vertice = NULL;
+// }

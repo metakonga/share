@@ -302,6 +302,11 @@ void gearConstraint::constraintJacobian(SMATD& cjaco)
 	cjaco(srow, jcol) = 1.0;
 }
 
+void gearConstraint::derivate(MATD& lhs, double mul)
+{
+
+}
+
 void gearConstraint::saveGearConstraintData(QTextStream& qts)
 {
 	qts << endl

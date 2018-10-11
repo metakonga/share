@@ -98,6 +98,11 @@ VEC3D kinematicConstraint::location() const
 	return loc;
 }
 
+VEC3D kinematicConstraint::CurrentDistance()
+{
+	return jb->Position() + jb->toGlobal(spj) - ib->Position() - ib->toGlobal(spi);
+}
+
 void kinematicConstraint::setCoordinates()
 {
 // 	spi = loc - (i ? i->Position() : VEC3D(0, 0, 0));
@@ -145,18 +150,31 @@ void kinematicConstraint::setLagrangeMultiplierPointer(double* r)
 
 void kinematicConstraint::saveData(QTextStream& qts)
 {
-	qts << endl << "KINEMATIC_CONSTRAINT" << endl		
+	qts << "ELEMENT " << "constraint" << endl
 		<< "NAME " << nm << endl
-		<< "TYPE " << (int)type << endl
-		<< "LOCATION " << loc.x << " " << loc.y << " " << loc.z << endl
-		<< "BASE_NAME " << ib->Name() << endl		
-		<< "BASE_LOCAL " << spi.x << " " << spi.y << " " << spi.z << endl
-		<< "BASE_P_POINT " << fi.x << " " << fi.y << " " << fi.z << endl
-		<< "BASE_Q_POINT " << gi.x << " " << gi.y << " " << gi.z << endl
-		<< "ACTION_NAME " << jb->Name() << endl
-		<< "ACTION_LOCAL " << spj.x << " " << spj.y << " " << spj.z << endl
-		<< "ACTION_P_POINT " << fj.x << " " << fj.y << " " << fj.z << endl
-		<< "ACTION_Q_POINT " << gj.x << " " << gj.y << " " << gj.z << endl;
+		<< "TYPE " << type << endl
+		<< "FIRST_BODY " << ib->Name() << endl
+		<< "SECOND_BODY " << jb->Name() << endl
+		<< "FIRST_JOINT_COORDINATE "
+		<< spi.x << " " << spi.y << " " << spi.z << " "
+		<< fi.x << " " << fi.y << " " << fi.z << " "
+		<< gi.x << " " << gi.y << " " << gi.z << endl
+		<< "SECOND_JOINT_COORDINATE "
+		<< spj.x << " " << spj.y << " " << spj.z << " "
+		<< fj.x << " " << fj.y << " " << fj.z << " "
+		<< gj.x << " " << gj.y << " " << gj.z << endl;
+// 	qts << endl << "KINEMATIC_CONSTRAINT" << endl		
+// 		<< "NAME " << nm << endl
+// 		<< "TYPE " << (int)type << endl
+// 		<< "LOCATION " << loc.x << " " << loc.y << " " << loc.z << endl
+// 		<< "BASE_NAME " << ib->Name() << endl		
+// 		<< "BASE_LOCAL " << spi.x << " " << spi.y << " " << spi.z << endl
+// 		<< "BASE_P_POINT " << fi.x << " " << fi.y << " " << fi.z << endl
+// 		<< "BASE_Q_POINT " << gi.x << " " << gi.y << " " << gi.z << endl
+// 		<< "ACTION_NAME " << jb->Name() << endl
+// 		<< "ACTION_LOCAL " << spj.x << " " << spj.y << " " << spj.z << endl
+// 		<< "ACTION_P_POINT " << fj.x << " " << fj.y << " " << fj.z << endl
+// 		<< "ACTION_Q_POINT " << gj.x << " " << gj.y << " " << gj.z << endl;
 }
 
 void kinematicConstraint::exportResultData2TXT()

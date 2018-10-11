@@ -36,6 +36,11 @@
 #define ALUMINUM_POISSON_RATIO	0.34
 #define ALUMINUM_SHEAR_MODULUS 0.0
 
+#define SAND_YOUNG_MODULUS 4.0E+7
+#define SAND_DENSITY 2600
+#define SAND_POISSON_RATIO 0.3
+#define SAND_SHEAR_MODULUS 0.0
+
 #define kor(str) QString::fromLocal8Bit(str)
 
 inline QStringList getMaterialList(){
@@ -46,7 +51,7 @@ inline QStringList getMaterialList(){
 	stList.push_back("glass");
 	stList.push_back("acrylic");
 	stList.push_back("aluminum");
-	//stList.push_back("sand");
+	stList.push_back("sand");
 	stList.push_back("user input");
 	return stList;
 }
@@ -57,6 +62,12 @@ inline QStringList getPreDefinedMBDList()
 	//stList.push_back("SliderCrank3D");
 	stList.push_back("FullCarModel");
 	return stList;
+}
+
+inline QString getFileExtend(QString f)
+{
+	int begin = f.lastIndexOf(".");
+	return f.mid(begin+1);
 }
 
 enum geometry_type{	
@@ -84,6 +95,7 @@ enum correction_type { CORRECTION = 0, GRADIENT_CORRECTION, KERNEL_CORRECTION, M
 enum kernel_type{ CUBIC_SPLINE = 0, QUADRATIC, QUINTIC, WENDLAND, GAUSS, MODIFIED_GAUSS };
 enum boundary_type{ DUMMY_PARTICLE_METHOD };
 enum import_shape_type { NO_SUPPORT_FORMAT = 0, MILKSHAPE_3D_ASCII, STL_ASCII };
+enum context_object_type{ VIEW_OBJECT = 0, GEOMETRY_OBJECT, CONSTRAINT_OBJECT, CONTACT_OBJECT };
 
 typedef struct 
 {
@@ -187,6 +199,12 @@ typedef struct
 	EPD ep;
 }host_polygon_mass_info;
 
+typedef struct
+{
+	VEC3D v3;
+	EPD ep;
+}v3epd_type;
+
 typedef struct  
 {
 	solver_type _svt;
@@ -198,6 +216,13 @@ typedef struct
 	double time;
 	double value;
 }time_double;
+
+typedef struct
+{
+	double rad;
+	VEC3D p, q, r;
+	VEC3D n;
+}triangle_info;
 
 /*template <typename T>*/
 typedef struct 
@@ -238,6 +263,8 @@ inline material_type material_str2enum(QString str)
 	else if (str == "polyethylene"){
 		mt = POLYETHYLENE;
 	}
+	else if (str == "sand")
+		mt = SAND;
 	else if (str == "user input"){
 		mt = USER_INPUT;
 	}
@@ -250,6 +277,7 @@ inline QString material_enum2str(int mt)
 	switch (mt){
 	case ACRYLIC:	str = "acrylic";	break;
 	case STEEL:		str = "steel";		break;
+	case SAND:		str = "sand";		break;
 	}
 	return str;
 }
@@ -264,6 +292,7 @@ inline cmaterialType getMaterialConstant(int mt)
 	case MEDIUM_CLAY: cmt.density = MEDIUM_CLAY_DENSITY; cmt.youngs = MEDIUM_CLAY_YOUNGS_MODULUS; cmt.poisson = MEDIUM_CLAY_POISSON_RATIO; cmt.shear = MEDIUM_SHEAR_MODULUS; break;
 	case GLASS: cmt.density = GLASS_DENSITY; cmt.youngs = GLASS_YOUNG_MODULUS; cmt.poisson = GLASS_POISSON_RATIO; cmt.shear = GLASS_SHEAR_MODULUS; break;
 	case ALUMINUM: cmt.density = ALUMINUM_DENSITY; cmt.youngs = ALUMINUM_YOUNG_MODULUS; cmt.poisson = ALUMINUM_POISSON_RATIO; cmt.shear = ALUMINUM_SHEAR_MODULUS; break;
+	case SAND: cmt.density = SAND_DENSITY; cmt.youngs = SAND_YOUNG_MODULUS; cmt.poisson = SAND_POISSON_RATIO; cmt.shear = SAND_SHEAR_MODULUS; break;
 	//case SAND: cmt.density = SAND_DENSITY; cmt.youngs = SAND_YOUNGS_MODULUS; cmt.poisson = SAND_POISSON_RATIO; break;
 	}
 

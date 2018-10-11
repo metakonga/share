@@ -43,7 +43,7 @@ public:
 	unsigned int NDummy();
 	ucolors::colorMap *ColorMap();
 	//void defineUserResult(QString nm);
-
+	double RequriedMemory(unsigned int np, unsigned int npart, solver_type ts);
 	void insertTimeData(double ct);
 	void insertGLineData(QString tg, VEC3D& b);
 	void insertPartName(QString nm);
@@ -65,7 +65,7 @@ public:
 	void clearMemory();
 	void setResultMemorySPH(unsigned int npart);
 	void setResultMemoryDEM(unsigned int npart, unsigned int _np);
-	void openResultFromFile(unsigned int idx);
+	void setPartDataFromBinary(unsigned int pt, QString file);
 	void openSphResultFiles(QStringList& slist);
 	void insertDataSPH(particle_type* tp, double* _p, double* _v, double* _prs, bool isCalcContour = false);
 	void exportEachResult2TXT(QString path);

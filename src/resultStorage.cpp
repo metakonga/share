@@ -66,6 +66,17 @@ ucolors::colorMap * resultStorage::ColorMap()
 	return cramp;
 }
 
+double resultStorage::RequriedMemory(unsigned int n, unsigned int npart, solver_type ts)
+{
+	int pn = ts == DEM ? 4 : 3;
+	double m_size = 0.0;
+	m_size += sizeof(double) * npart;
+	m_size += sizeof(double) * n * pn * npart;
+	//m_size += sizeof(double) * n * 3 * npart;
+	//m_size += sizeof(double) * n * 4 * npart;
+	return m_size;
+}
+
 // void resultStorage::defineUserResult(QString nm)
 // {
 // 	
@@ -143,11 +154,12 @@ void resultStorage::clearMemory()
 void resultStorage::allocMemory(unsigned int n, unsigned int npart, solver_type ts)
 {
 	int pn = ts == DEM ? 4 : 3;
+	
 	time = new double[npart]; memset(time, 0, sizeof(double)*npart);
 	pos = new double[(n * pn) * npart]; memset(pos, 0, sizeof(double) * n * pn * npart);
-	vel = new double[(n * 3) * npart]; memset(vel, 0, sizeof(double) * n * 3 * npart);	
-	color = new double[(n * 4) * npart]; memset(color, 0, sizeof(double) * n * 4 * npart);
-	cramp = new ucolors::colorMap(npart);
+	//vel = new double[(n * 3) * npart]; memset(vel, 0, sizeof(double) * n * 3 * npart);	
+	//color = new double[(n * 4) * npart]; memset(color, 0, sizeof(double) * n * 4 * npart);
+	//cramp = new ucolors::colorMap(npart);
 	pdata_type = pn;
 	if (ts == SPH)
 	{
@@ -157,7 +169,7 @@ void resultStorage::allocMemory(unsigned int n, unsigned int npart, solver_type 
 	}
 	else if (ts == DEM)
 	{
-		cramp->setTarget(ucolors::COLORMAP_VELOCITY_MAG);
+		//cramp->setTarget(ucolors::COLORMAP_VELOCITY_MAG);
 	}
 	
 // 	QStringList pm = pmrd.keys();
@@ -224,7 +236,11 @@ void resultStorage::setResultMemoryDEM(unsigned int npart, unsigned int _np)
 	total_parts = npart;
 	clearMemory();
 	if (!isAllocMemory)
+	{
+		//RequriedMemory(np, total_parts, DEM);
 		allocMemory(np, total_parts, DEM);
+	}
+		
 }
 
 void resultStorage::insertTimeDoubleResult(QString& nm, time_double& td)
@@ -383,49 +399,55 @@ double resultStorage::getPartTime(unsigned int pt)
 	return time[pt];
 }
 
-void resultStorage::openResultFromFile(unsigned int idx)
+void resultStorage::setPartDataFromBinary(unsigned int pt, QString file)
 {
-	if (!isAllocMemory && np)
-		allocMemory(np);
-	QFile pf(rList.at(idx));
+	//QFile pf(rList.at(idx));
+	QFile pf(file);
 	pf.open(QIODevice::ReadOnly);
-	double time = 0.f;
+	double time = 0.0;
+	unsigned int _np = 0;
 	pf.read((char*)&time, sizeof(double));
-	pf.read((char*)type, sizeof(particle_type) * np);
-	pf.read((char*)pos, sizeof(double) * np * 3);
-	pf.read((char*)vel, sizeof(double) * np * 3);
-	pf.read((char*)press, sizeof(double) * np);
-	pf.read((char*)isf, sizeof(bool) * np);
-
-	double grad = maxPress * 0.1f;
-	double t = 0.f;
-	for (unsigned int i = 0; i < nfluid; i++){
-		// 		if (type[i] != FLUID)
-		// 			continue;
-		if (isf[i]){
-			color[i * 4 + 0] = 1.0f;
-			color[i * 4 + 1] = 1.0f;
-			color[i * 4 + 2] = 1.0f;
-			color[i * 4 + 3] = 1.0f;
-			continue;
-		}
-
-		switch (type[i]){
-		case FLUID:
-			//t = (press[i] - 0) / grad;
-			if (cramp->target() == ucolors::COLORMAP_PRESSURE)
-				cramp->getColorRamp(0, press[i], &(color[i * 4]));
-			else if (cramp->target() == ucolors::COLORMAP_VELOCITY_X)
-				cramp->getColorRamp(0, vel[i * 3 + 0], &(color[i * 4]));
-			color[i * 4 + 3] = 1.0f;
-			break;
-		}
-	}
+	pf.read((char*)&_np, sizeof(unsigned int));
+	//pf.read((char*)type, sizeof(particle_type) * np);
+	pf.read((char*)pos, sizeof(double) * np * 4);
 	pf.close();
-// 	if (!isDefined)
-// 	{
-// 		define();
+	char pname[256] = { 0, };
+	QString part_name;
+	part_name.sprintf("part%04d", pt);
+	insertPartName(part_name);
+// 	pf.read((char*)vel, sizeof(double) * np * 3);
+// 	pf.read((char*)press, sizeof(double) * np);
+// 	pf.read((char*)isf, sizeof(bool) * np);
+// 
+// 	double grad = maxPress * 0.1f;
+// 	double t = 0.f;
+// 	for (unsigned int i = 0; i < nfluid; i++){
+// 		// 		if (type[i] != FLUID)
+// 		// 			continue;
+// 		if (isf[i]){
+// 			color[i * 4 + 0] = 1.0f;
+// 			color[i * 4 + 1] = 1.0f;
+// 			color[i * 4 + 2] = 1.0f;
+// 			color[i * 4 + 3] = 1.0f;
+// 			continue;
+// 		}
+// 
+// 		switch (type[i]){
+// 		case FLUID:
+// 			//t = (press[i] - 0) / grad;
+// 			if (cramp->target() == ucolors::COLORMAP_PRESSURE)
+// 				cramp->getColorRamp(0, press[i], &(color[i * 4]));
+// 			else if (cramp->target() == ucolors::COLORMAP_VELOCITY_X)
+// 				cramp->getColorRamp(0, vel[i * 3 + 0], &(color[i * 4]));
+// 			color[i * 4 + 3] = 1.0f;
+// 			break;
+// 		}
 // 	}
+// 	pf.close();
+// // 	if (!isDefined)
+// // 	{
+// // 		define();
+// // 	}
 }
 
 void resultStorage::openSphResultFiles(QStringList& slist)

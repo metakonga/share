@@ -218,3 +218,20 @@ void modelManager::defineSliderCrank3D()
 	mbds[model::name] = sc3d;
 	mbd = sc3d;
 }
+
+bool modelManager::defineTestModel()
+{
+	particle_tire_addition_model* tmd = new particle_tire_addition_model(mbd);
+	bool ret = tmd->setUp();
+// 	if (ret)
+// 	{
+// 		mbds[model::name] = tmd;
+// 		mbd = tmd;
+// 	}
+// 	else
+// 	{
+// 		delete tmd;
+// 		return false;
+// 	}
+	return ret;
+}

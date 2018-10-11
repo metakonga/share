@@ -10,6 +10,7 @@
 #include "universalConstraint.h"
 #include "springDamperModel.h"
 #include "database.h"
+#include "modelManager.h"
 #include <direct.h>
 #include <QString>
 
@@ -17,9 +18,11 @@ mbd_model::mbd_model()
 	: model()
 	, mbd_model_name("")
 	, ground(NULL)
+	, start_time_simulation(0)
 	, is2D(false)
 {
-	ground = new pointMass(QString("ground"), pointMass::GROUND);
+	ground = new pointMass(QString("ground"));
+	ground->setMassType(pointMass::GROUND);
 	//GLWidget::GLObject()->makeMarker("ground", ground->Position());
 	ground->setID(-1);
 }
@@ -29,8 +32,10 @@ mbd_model::mbd_model(QString _name)
 	, mbd_model_name(_name)
 	, ground(NULL)
 	, is2D(false)
+	, start_time_simulation(0)
 {
-	ground = new pointMass(QString("ground"), pointMass::GROUND);
+	ground = new pointMass(QString("ground"));
+	ground->setMassType(pointMass::GROUND);
 	//GLWidget::GLObject()->makeMarker("ground",  ground->Position());
 	ground->setID(-1);
 }
@@ -237,6 +242,25 @@ axialRotationForce* mbd_model::createAxialRotationForce(QTextStream& qts)
 	//arf->setForceValue(fv);
 }
 
+drivingConstraint* mbd_model::createDrivingConstraint(
+	QString _nm, kinematicConstraint* _kin, drivingConstraint::Type _tp, double iv, double cv)
+{
+	drivingConstraint *dc = new drivingConstraint(_nm);
+	dc->define(_kin, _tp, iv, cv);
+	drivings[_nm] = dc;
+	QString log;
+	QTextStream qts(&log);
+	qts << "ELEMENT " << "driving_constraint" << endl
+		<< "NAME " << _nm << endl
+		<< "TARGET_JOINT " << _kin->name() << endl
+		<< "DRIVING_TYPE " << (int)_tp << endl
+		<< "INITIAL_VALUE " << iv << endl
+		<< "CONSTANT_VALUE " << cv << endl;
+		//<< "STARTING_TIME " << 
+	other_logs[_nm] = log;
+	return dc;
+}
+
 contactPair* mbd_model::createContactPair(
 	QString _nm, pointMass* ib, pointMass* jb)
 {
@@ -257,7 +281,7 @@ bool mbd_model::mode2D()
 	return is2D;
 }
 
-pointMass* mbd_model::PointMass(QString& nm)
+pointMass* mbd_model::PointMass(QString nm)
 {
 	QStringList l = masses.keys();
 	QStringList::const_iterator it = qFind(l, nm);
@@ -266,17 +290,48 @@ pointMass* mbd_model::PointMass(QString& nm)
 	return masses[nm];
 }
 
-rigidBody* mbd_model::createRigidBody(
+kinematicConstraint* mbd_model::kinConstraint(QString nm)
+{
+	QStringList l = consts.keys();
+	QStringList::const_iterator it = qFind(l, nm);
+	if (it == l.end())
+		return NULL;
+	return consts[nm];
+}
+
+void mbd_model::insertPointMass(pointMass* pm)
+{
+	masses[pm->Name()] = pm;
+	database::DB()->addChild(database::RIGID_BODY_ROOT, pm->Name());
+	VEC3D p = pm->Position();
+	EPD ep = pm->getEP();
+	VEC3D piner = pm->DiagonalInertia();
+	VEC3D siner = pm->SymetricInertia();
+	pm->setViewMarker(GLWidget::GLObject()->makeMarker(pm->Name(), p));
+	QString log;
+	QTextStream qts(&log);
+	qts << "ELEMENT " << "poly_mass" << endl
+		<< "NAME " << pm->Name() << endl
+		<< "MASS " << pm->Mass() << endl
+		<< "MATERIAL_TYPE " << pm->MaterialType() << endl
+		<< "POSITION " << p.x << " " << p.y << " " << p.z << endl
+		<< "PARAMETER " << ep.e0 << " " << ep.e1 << " " << ep.e2 << " " << ep.e3 << endl
+		<< "D_INERTIA " << piner.x << " " << piner.y << " " << piner.z << endl
+		<< "S_INERTIA " << siner.x << " " << siner.y << " " << siner.z << endl;
+	body_logs[pm->Name()] = log;
+}
+
+pointMass* mbd_model::createPointMass(
 	QString _name, double mass, VEC3D piner, VEC3D siner, 
 	VEC3D p, EPD ep /*= EPD(1.0, 0.0, 0.0, 0.0)*/)
 {
-	rigidBody* rb = new rigidBody(_name);
+	pointMass* rb = new pointMass(_name);
 	rb->setMass(mass);
 	rb->setDiagonalInertia(piner.x, piner.y, piner.z);
 	rb->setSymetryInertia(siner.x, siner.y, siner.z);
 	rb->setPosition(p);
 	rb->setEP(ep);
-	GLWidget::GLObject()->makeMarker(_name, p);
+	rb->setViewMarker(GLWidget::GLObject()->makeMarker(_name, p));
 	masses[_name] = rb;
 	database::DB()->addChild(database::RIGID_BODY_ROOT, _name);
 	
@@ -303,12 +358,13 @@ pointMass* mbd_model::Ground()
 void mbd_model::Open(QTextStream& qts)
 {
 	QString ch;
+	//int tp = 0;
 	while (ch != "END_DATA")
 	{
 		qts >> ch;
 		if (ch == "ELEMENT")
-			qts << ch;
-		if (ch == "rigid")
+			qts >> ch;
+		if (ch == "point_mass")
 		{
 			QString _name;
 			int mt;
@@ -322,23 +378,72 @@ void mbd_model::Open(QTextStream& qts)
 				>> ch >> ep.e0 >> ep.e1 >> ep.e2 >> ep.e3
 				>> ch >> piner.x >> piner.y >> piner.z
 				>> ch >> siner.x >> siner.y >> siner.z;
-			createRigidBody(_name, mass, piner, siner, p, ep);
+			pointMass* pm = dynamic_cast<pointMass*>(modelManager::MM()->GeometryObject()->Object(_name));
+			if(!pm)
+				createPointMass(_name, mass, piner, siner, p, ep);
+			else
+			{
+				pm->setMass(mass);
+				pm->setPosition(p);
+				pm->setEP(ep);
+				pm->setDiagonalInertia(piner.x, piner.y, piner.z);
+				pm->setSymetryInertia(siner.x, siner.y, siner.z);
+				insertPointMass(pm);
+				vobject* vo = GLWidget::GLObject()->Object(_name);
+				if (vo)
+					pm->setViewObject(vo);
+				pm->updateView(p, ep2e(ep));
+			}
+				
 		}
+// 		if ((pointMass::Type)tp == pointMass::POLYMER)
+// 		{
+// 			QString _name;
+// 			int mt;
+// 			double mass;
+// 			VEC3D p, piner, siner;
+// 			EPD ep;
+// 			qts >> ch >> _name
+// 				>> ch >> mass
+// 				>> ch >> mt
+// 				>> ch >> p.x >> p.y >> p.z
+// 				>> ch >> ep.e0 >> ep.e1 >> ep.e2 >> ep.e3
+// 				>> ch >> piner.x >> piner.y >> piner.z
+// 				>> ch >> siner.x >> siner.y >> siner.z;
+// 			pointMass* pm = dynamic_cast<pointMass*>(modelManager::MM()->GeometryObject()->Object(_name));
+// 			pm->setMass(mass);
+// 			pm->setPosition(p);
+// 			pm->setEP(ep);
+// 			pm->setDiagonalInertia(piner.x, piner.y, piner.z);
+// 			pm->setSymetryInertia(siner.x, siner.y, siner.z);
+// 			GLWidget::GLObject()->Objects()[pm->Name()]->setInitialPosition(pm->Position());
+// 			insertPointMass(pm);
+// 		//	createRigidBody(_name, mass, piner, siner, p, ep);
+// 		}
 		else if (ch == "constraint")
 		{
 			QString _name, ib, jb;
 			int kt;
 			VEC3D spi, fi, gi, spj, fj, gj;
 			qts >> ch >> _name >> ch >> kt >> ch >> ib >> ch >> jb
-				>> ch >> spi.x >> spi.y >> spi.z 
-				>> ch >> fi.x >> fi.y >> fi.z
-				>> ch >> gi.x >> gi.y >> gi.z
-				>> ch >> spj.x >> spj.y >> spj.z
-				>> ch >> fj.x >> fj.y >> fj.z
-				>> ch >> gj.x >> gj.y >> gj.z;
+				>> ch >> spi.x >> spi.y >> spi.z >> fi.x >> fi.y >> fi.z >> gi.x >> gi.y >> gi.z
+				>> ch >> spj.x >> spj.y >> spj.z >> fj.x >> fj.y >> fj.z >> gj.x >> gj.y >> gj.z;
 			createKinematicConstraint(
 				_name, (kinematicConstraint::Type)kt,
-				masses[ib], spi, fi, gi, masses[jb], spj, fj, gj);
+				(ib == "ground" ? ground : masses[ib]), spi, fi, gi, 
+				(jb == "ground" ? ground : masses[jb]), spj, fj, gj);
+		}
+		else if (ch == "drive_constraint")
+		{
+			QString _name, target;
+			int tp;
+			double iv, cv, st;
+			qts >> ch >> _name >> ch >> tp >> ch >> target
+				>> ch >> st >> ch >> iv >> cv;
+			kinematicConstraint *kc = kinConstraint(target);
+			drivingConstraint *dc = createDrivingConstraint(_name, kc, (drivingConstraint::Type)tp, iv, cv);
+			dc->setStartTime(st);
+
 		}
 		else if (ch == "tsda")
 		{
@@ -358,14 +463,27 @@ void mbd_model::Save(QTextStream& qts)
 {
 	qts << endl
 		<< "MULTIBODY_MODEL_DATA " << mbd_model_name << endl;
-	foreach(QString log, body_logs)
-	{
-		qts << log;
-	}
-	foreach(QString log, other_logs)
-	{
-		qts << log;
-	}
+	foreach(pointMass* pm, masses)
+		pm->saveData(qts);
+
+	foreach(kinematicConstraint* kc, consts)
+		kc->saveData(qts);
+// 	foreach(cableConstraint* cc, cables)
+// 	{
+// 		cc->saveCableConstraintData(qts);
+// 	}
+	foreach(forceElement* fe, forces)
+		fe->saveData(qts);
+	foreach(drivingConstraint* dc, drivings)
+		dc->saveData(qts);
+// 	foreach(QString log, body_logs)
+// 	{
+// 		qts << log;
+// 	}
+// 	foreach(QString log, other_logs)
+// 	{
+// 		qts << log;
+// 	}
 	qts << "END_DATA" << endl;
 }
 
@@ -468,25 +586,29 @@ void mbd_model::loadPointMassResultDataFromTXT()
 
 void mbd_model::saveModel(QTextStream& qts)
 {
-	foreach(pointMass* pm, masses)
-	{
-		pm->saveData(qts);
-	}
-
-	foreach(kinematicConstraint* kc, consts)
-	{
-		if (kc->constType() == kinematicConstraint::CABLE)
-			continue;
-		kc->saveData(qts);
-	}
-	foreach(cableConstraint* cc, cables)
-	{
-		cc->saveCableConstraintData(qts);
-	}
-	foreach(forceElement* fe, forces)
-	{
-		fe->saveData(qts);
-	}
+// 	foreach(pointMass* pm, masses)
+// 	{
+// 		pm->saveData(qts);
+// 	}
+// 
+// 	foreach(kinematicConstraint* kc, consts)
+// 	{
+// 		if (kc->constType() == kinematicConstraint::CABLE)
+// 			continue;
+// 		kc->saveData(qts);
+// 	}
+// 	foreach(cableConstraint* cc, cables)
+// 	{
+// 		cc->saveCableConstraintData(qts);
+// 	}
+// 	foreach(forceElement* fe, forces)
+// 	{
+// 		fe->saveData(qts);
+// 	}
+// 	foreach(drivingConstraint* dc, drivings)
+// 	{
+// 		dc->saveData(qts);
+// 	}
 // 	QString model_file = model_path + "/" + name + ".mde";
 // 	QFile io_model(model_file);
 // 	io_model.open(QIODevice::WriteOnly);
@@ -729,6 +851,35 @@ void mbd_model::updateAndInitializing()
 // 	memset(rhs)
 // 	foreach()
 }
+
+void mbd_model::setStartTimeForSimulation(double sts)
+{
+	start_time_simulation = sts;
+}
+
+QMap<QString, v3epd_type> mbd_model::setStartingData(startingModel* stm)
+{
+	QMap<QString, v3epd_type> out;
+	foreach(pointMass* pm, masses)
+	{
+		resultStorage::pointMassResultData pmrd = stm->MBD_BodyData()[pm->Name()];
+		pm->setPosition(pmrd.pos);
+		pm->setVelocity(pmrd.vel);
+		pm->setAcceleration(pmrd.acc);
+		pm->setEP(pmrd.ep);
+		VEC4D ev = 0.5 * transpose(pmrd.ep.G(), pmrd.omega);
+		pm->setEV(EPD(ev.x, ev.y, ev.z, ev.w));
+		pm->setEA(pmrd.ea);
+		out[pm->Name()] = v3epd_type{ pmrd.pos, pmrd.ep };
+		pm->makeTransformationMatrix();
+	}
+	return out;
+}
+
+// void mbd_model::setPointMassDataFromStartingModel(QMap<int, resultStorage::pointMassResultData>& d)
+// {
+// 
+// }
 
 // unsigned int mbd_model::numPolygonSphere()
 // {

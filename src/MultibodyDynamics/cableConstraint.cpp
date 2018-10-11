@@ -103,6 +103,11 @@ void cableConstraint::constraintJacobian(SMATD& cjaco)
 	}
 }
 
+void cableConstraint::derivate(MATD& lhs, double mul)
+{
+
+}
+
 // void cableConstraint::constraintJacobian(int sr, SMATD& cjaco)
 // {
 // 	//updateCableInitLength();

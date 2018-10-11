@@ -6,6 +6,8 @@
 #include <QString>
 #include <QTextStream>
 
+class vobject;
+
 class object
 {
 public:
@@ -25,6 +27,11 @@ public:
 	double Poisson() const { return p; }
 	double Shear() const { return sm; }
 	unsigned int particleCount() const { return count; }
+	void setViewObject(vobject* vo) { vobj = vo; }
+	void setViewMarker(vobject* vm) { marker = vm; }
+	vobject* ViewObject() { return vobj; }
+	vobject* ViewMarker() { return marker; }
+	void updateView(VEC3D p, VEC3D r);
 	
 	double Volume() const { return vol; }
 	void setVolume(double _vol) { vol = _vol; }
@@ -35,6 +42,8 @@ public:
 
 	VEC3D DiagonalInertia0() { return dia_iner0; }
 	VEC3D SymetricInertia0() { return sym_iner0; }
+
+	virtual void saveData(QTextStream& ts) {};
 
 protected:
 	static unsigned int count;
@@ -53,6 +62,8 @@ protected:
 	double p;		// poisson ratio
 	double sm;		// shear modulus
 
+	vobject* vobj;
+	vobject* marker;
 };
 
 #endif

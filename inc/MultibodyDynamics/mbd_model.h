@@ -8,6 +8,7 @@
 #include "kinematicConstraint.h"
 #include "cableConstraint.h"
 #include "gearConstraint.h"
+#include "drivingConstraint.h"
 #include "rigidBody.h"
 #include "artificialCoordinate.h"
 #include "model.h"
@@ -17,6 +18,7 @@
 class forceElement;
 class axialRotationForce;
 class springDamperModel;
+class startingModel;
 
 class mbd_model : public model
 {
@@ -26,9 +28,10 @@ public:
 	virtual ~mbd_model();
 
 //	rigidBody* createRigidBody(QString _name);
-	rigidBody* createRigidBody(
+	pointMass* createPointMass(
 		QString _name, double mass, VEC3D piner, VEC3D siner, 
 		VEC3D p, EPD ep = EPD(1.0, 0.0, 0.0, 0.0));
+	void insertPointMass(pointMass* _pm);
 	pointMass* Ground();
 	kinematicConstraint* createKinematicConstraint(
 		QString _name, kinematicConstraint::Type kt, 
@@ -57,6 +60,9 @@ public:
 		QString _name, pointMass* i, pointMass* j, VEC3D loc, VEC3D u, double v);
 	axialRotationForce* createAxialRotationForce(QTextStream& qts);
 	artificialCoordinate* createArtificialCoordinate(QString _nm);
+	drivingConstraint* createDrivingConstraint(
+		QString _nm, kinematicConstraint* _kin, drivingConstraint::Type _tp,
+		double iv, double cv);
 
 	contactPair* createContactPair(QString _nm, pointMass* ib, pointMass* jb);
 
@@ -64,14 +70,17 @@ public:
 	bool mode2D();
 	void setMBDModelName(QString _n) { mbd_model_name = _n; }
 	//QString& modelPath() { return model_path; }
+	double StartTimeForSimulation() { return start_time_simulation; }
 	QString& modelName() { return mbd_model_name; }
-	pointMass* PointMass(QString& nm);
+	pointMass* PointMass(QString nm);
+	kinematicConstraint* kinConstraint(QString s);
 	QMap<QString, kinematicConstraint*>& kinConstraint() { return consts; }
 	QMap<QString, pointMass*>& pointMasses() { return masses; }
 	QMap<QString, forceElement*>& forceElements() { return forces; }
 	QMap<QString, cableConstraint*>& cableConstraints() { return cables; }
 	QMap<QString, gearConstraint*>& gearConstraints() { return gears; }
 	QMap<QString, artificialCoordinate*>& artificialCoordinates() { return acoordinates; }
+	QMap<QString, drivingConstraint*>& drivingConstraints() { return drivings; }
 
 	void Open(QTextStream& qts);
 	void Save(QTextStream& qts);
@@ -83,7 +92,11 @@ public:
 	void runExpression(double ct, double dt);
 	void updateCableInitLength();
 	void updateAndInitializing();
+	void setStartTimeForSimulation(double sts);
+	QMap<QString, v3epd_type> setStartingData(startingModel* stm);
 	virtual void userDefineProcess(){};
+
+	//void setPointMassDataFromStartingModel(QMap<int, resultStorage::pointMassResultData>& d);
 
 protected:
 	pointMass *ground;
@@ -92,6 +105,8 @@ protected:
 	//QString model_path;
 	QString mbd_model_name;
 	bool is2D;
+	
+	double start_time_simulation;
 
 	QMap<QString, QString> body_logs;
 	QMap<QString, QString> other_logs;
@@ -102,6 +117,7 @@ protected:
 	QMap<QString, forceElement*> forces;
 	QMap<QString, artificialCoordinate*> acoordinates;
 	QMap<QString, contactPair*> cpairs;
+	QMap<QString, drivingConstraint*> drivings;
 };
 
 #endif

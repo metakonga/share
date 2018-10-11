@@ -8,6 +8,7 @@ pointMass::pointMass()
 	: object()
 	, ms(0)
 	, ang(0.0)
+	, type(RIGID_BODY)
 {
 	ep.e0 = 1.0;
 	count++;
@@ -17,18 +18,20 @@ pointMass::pointMass(QString& _name, geometry_type gt, geometry_use gu)
 	: object(_name, gt, gu)
 	, ang(0.0)
 	, ms(0)
-	, type(RIGID)
+	, type(RIGID_BODY)
 {
+// 	if (gt == POLYGON_SHAPE)
+// 		type = POLYMER;
 	ep.e0 = 1.0;
 	makeTransformationMatrix();
 	count++;
 }
 
-pointMass::pointMass(QString& _name, Type _type)
+pointMass::pointMass(QString& _name)
 	: object(_name, NO_GEOMETRY_TYPE, MASS)
 	, ang(0.0)
 	, ms(0)
-	, type(_type)
+	, type(RIGID_BODY)
 {
 	ep.e0 = 1.0;
 	makeTransformationMatrix();
@@ -96,8 +99,22 @@ void pointMass::setDiagonalInertia(double ixx, double iyy, double izz)
 	diag_iner = VEC3D(ixx, iyy, izz);
 }
 
-void pointMass::saveData(QTextStream& qts) const
+void pointMass::setRotationalVelocity(VEC3D& rv)
 {
+	VEC4D _ev = 0.5 * transpose(ep.G(), rv);
+	ev = EPD(_ev.x, _ev.y, _ev.z, _ev.w);
+}
+
+void pointMass::saveData(QTextStream& qts)
+{
+	qts << "ELEMENT " << "point_mass" << endl
+		<< "NAME " << name << endl
+		<< "MASS " << ms << endl
+		<< "MATERIAL_TYPE " << mat_type << endl
+		<< "POSITION " << pos.x << " " << pos.y << " " << pos.z << endl
+		<< "PARAMETER " << ep.e0 << " " << ep.e1 << " " << ep.e2 << " " << ep.e3 << endl
+		<< "D_INERTIA " << diag_iner.x << " " << diag_iner.y << " " << diag_iner.z << endl
+		<< "S_INERTIA " << sym_iner.x << " " << sym_iner.y << " " << sym_iner.z << endl;
 // 	qts << endl;// << "TYPE ";
 // 	switch (type)
 // 	{
