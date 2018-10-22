@@ -438,8 +438,11 @@ void mbd_model::Open(QTextStream& qts)
 			QString _name, target;
 			int tp;
 			double iv, cv, st;
-			qts >> ch >> _name >> ch >> tp >> ch >> target
-				>> ch >> st >> ch >> iv >> cv;
+			qts >> ch >> _name 
+				>> ch >> tp 
+				>> ch >> target
+				>> ch >> st 
+				>> ch >> iv >> cv;
 			kinematicConstraint *kc = kinConstraint(target);
 			drivingConstraint *dc = createDrivingConstraint(_name, kc, (drivingConstraint::Type)tp, iv, cv);
 			dc->setStartTime(st);

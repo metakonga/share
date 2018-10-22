@@ -8,6 +8,7 @@ class plane;
 class cylinder;
 class polygonObject;
 
+
 class geometryObjects
 {
 public:
@@ -20,7 +21,7 @@ public:
 	QMap<QString, object*>& Objects() { return objs; }
 	QMap<QString, QString>& Logs() { return logs; }
 	object* Object(QString n);// { return objs[n]; }
-
+	QString polyRefinement(QString n, double v);
 	cube* makeCube(
 		QString _name, material_type mt, geometry_use gu, 
 		VEC3D& start, VEC3D& end, double e, double p, double d, double s);

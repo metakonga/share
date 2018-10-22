@@ -88,5 +88,19 @@ void revoluteConstraint::constraintJacobian(SMATD& cjaco)
 
 void revoluteConstraint::derivate(MATD& lhs, double mul)
 {
+	VEC3D L(lm[0], lm[1], lm[2]);
+	MAT44D Di = -D(spi, L) + lm[3] * D(fi, jb->toGlobal(hj)) + lm[4] * D(gi, jb->toGlobal(hj));
+	MAT44D Dj = D(spj, L) + lm[3] * D(hj, ib->toGlobal(fi)) + lm[4] * D(hj, ib->toGlobal(gi));
+
+	lhs.plus(icol + 3, icol + 3, POINTER(Di), MAT4x4, mul);
+	lhs.plus(jcol + 3, jcol + 3, POINTER(Dj), MAT4x4, mul);
+	
+	Di = lm[3] * transpose(B(ib->getEP(), fi), B(jb->getEP(), hj));
+	Di += lm[4] * transpose(B(ib->getEP(), gi), B(jb->getEP(), hj));
+	Dj = lm[3] * transpose(B(jb->getEP(), hj), B(ib->getEP(), fi));
+	Dj += lm[4] * transpose(B(jb->getEP(), hj), B(ib->getEP(), gi));
+
+	lhs.plus(icol + 3, jcol + 3, POINTER(Di), MAT4x4, mul);
+	lhs.plus(jcol + 3, icol + 3, POINTER(Dj), MAT4x4, mul);
 
 }

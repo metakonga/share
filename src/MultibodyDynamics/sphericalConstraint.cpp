@@ -56,5 +56,10 @@ void sphericalConstraint::constraintJacobian(SMATD& cjaco)
 
 void sphericalConstraint::derivate(MATD& lhs, double mul)
 {
+	VEC3D L(lm[0], lm[1], lm[2]);
+	MAT44D Di = -D(spi, L);
+	MAT44D Dj = D(spj, L);
 
+	lhs.plus(icol + 3, icol + 3, POINTER(Di), MAT4x4, mul);
+	lhs.plus(jcol + 3, jcol + 3, POINTER(Dj), MAT4x4, mul);
 }

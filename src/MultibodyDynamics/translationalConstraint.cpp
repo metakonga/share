@@ -75,5 +75,44 @@ void translationalConstraint::constraintJacobian(SMATD& cjaco)
 
 void translationalConstraint::derivate(MATD& lhs, double mul)
 {
+	MAT44D Dv;
+	MAT34D Bv;
+// 	bool ig = ib->MassType() != pointMass::GROUND;
+// 	bool jg = jb->MassType() != pointMass::GROUND;
+	VEC3D dij = (jb->Position() + jb->toGlobal(spj)) - (ib->Position() + ib->toGlobal(spi));
 
+	Dv = lm[0] * D(fi, jb->toGlobal(hj));
+	Dv += lm[1] * D(gi, jb->toGlobal(hj));
+	Dv += lm[2] * D(fi, dij + ib->toGlobal(spi));
+	Dv += lm[3] * D(gi, dij + ib->toGlobal(spi));
+	Dv += lm[4] * D(fi, jb->toGlobal(fj));
+	lhs.plus(icol + 3, icol + 3, POINTER(Dv), MAT4x4, mul);
+	Bv = -lm[2] * B(ib->getEP(), fi) - lm[3] * B(ib->getEP(), gi);
+	lhs.plus(icol, icol + 3, POINTER(Bv), MAT3X4, mul);
+	lhs.plus(icol + 3, icol, POINTER(Bv), MAT4x3, mul);
+
+	Bv = -Bv;
+	lhs.plus(icol + 3, jcol, POINTER(Bv), MAT4x3, mul);
+	lhs.plus(jcol, icol + 3, POINTER(Bv), MAT3X4, mul);
+
+	Dv = lm[0] * D(hj, ib->toGlobal(fi));
+	Dv += lm[1] * D(hj, ib->toGlobal(gi));
+	Dv += lm[2] * D(spj, ib->toGlobal(fi));
+	Dv += lm[3] * D(spj, ib->toGlobal(gi));
+	Dv += lm[4] * D(fj, ib->toGlobal(fi));
+	lhs.plus(jcol + 3, jcol + 3, POINTER(Dv), MAT4x4, mul);
+
+	Dv = lm[0] * transpose(B(ib->getEP(), fi), B(jb->getEP(), hj));
+	Dv += lm[1] * transpose(B(ib->getEP(), gi), B(jb->getEP(), hj));
+	Dv += lm[2] * transpose(B(ib->getEP(), fi), B(jb->getEP(), spj));
+	Dv += lm[3] * transpose(B(ib->getEP(), gi), B(jb->getEP(), spj));
+	Dv += lm[4] * transpose(B(ib->getEP(), fi), B(jb->getEP(), fj));
+	lhs.plus(icol + 3, jcol + 3, POINTER(Dv), MAT4x4, mul);
+
+	Dv = lm[0] * transpose(B(jb->getEP(), hj), B(ib->getEP(), fi));
+	Dv += lm[1] * transpose(B(jb->getEP(), hj), B(ib->getEP(), gi));
+	Dv += lm[2] * transpose(B(jb->getEP(), spj), B(ib->getEP(), fi));
+	Dv += lm[3] * transpose(B(jb->getEP(), spj), B(ib->getEP(), gi));
+	Dv += lm[4] * transpose(B(jb->getEP(), fj), B(ib->getEP(), fi));
+	lhs.plus(jcol + 3, icol + 3, POINTER(Dv), MAT4x4, mul);
 }

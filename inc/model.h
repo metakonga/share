@@ -17,6 +17,7 @@ public:
 	static void setGravity(double g, gravity_direction d);
 	//static void 
 
+	static bool isSinglePrecision;
 	static unit_type unit;
 	static QString name;
 	static QString path;

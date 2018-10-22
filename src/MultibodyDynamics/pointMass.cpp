@@ -181,6 +181,15 @@ VEC3D pointMass::toGlobal(VEC3D &v)
 	tv.z = A.a20*v.x + A.a21*v.y + A.a22*v.z;
 	return tv;
 }
+// 
+// VEC3D pointMass::toGlobal(VEC3F &v)
+// {
+// 	VEC3D tv;
+// 	tv.x = A.a00*v.x + A.a01*v.y + A.a02*v.z;
+// 	tv.y = A.a10*v.x + A.a11*v.y + A.a12*v.z;
+// 	tv.z = A.a20*v.x + A.a21*v.y + A.a22*v.z;
+// 	return tv;
+// }
 
 VEC3D pointMass::toDGlobal(VEC3D &v)
 {

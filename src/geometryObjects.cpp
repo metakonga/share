@@ -32,6 +32,7 @@ void geometryObjects::Open(QTextStream& qts)
 		qts >> ch;
 		if (ch == "OBJECT")
 			qts >> ch;
+		
 		if (ch == "cube")
 		{
 			QString _name;
@@ -69,6 +70,8 @@ void geometryObjects::Open(QTextStream& qts)
 		else if (ch == "polygon")
 		{
 			QString _name, file;
+			QString tt;
+			double v;
 			int mt, gu, ist;
 			double e, p, d, s;
 			VEC3D loc;
@@ -80,8 +83,11 @@ void geometryObjects::Open(QTextStream& qts)
 				>> ch >> mt
 				>> ch >> gu
 				>> ch >> ist
-				>> ch >> e >> p >> d >> s;
+				>> ch >> e >> p >> d >> s
+				>> ch >> tt >> ch >> v;
 			vpolygon* vp = GLWidget::GLObject()->makePolygonObject(_name, (import_shape_type)ist, file);
+			if (tt == "poly_refinement" && v)
+				polyRefinement(ch, v);// ->splitTriangle(v);
 			makePolygonObject(
 				_name, (geometry_use)gu, file, (import_shape_type)ist,loc,
 				vp->NumTriangles(), vp->VertexList(), vp->IndexList(),
@@ -102,6 +108,18 @@ object* geometryObjects::Object(QString n)
 	if (it == l.end())
 		return NULL;
 	return objs[n];
+}
+
+QString geometryObjects::polyRefinement(QString n, double v)
+{
+	vpolygon* vpoly = dynamic_cast<vpolygon*>(GLWidget::GLObject()->Object(n));
+	unsigned int pre_ntri = vpoly->NumTriangles();
+	if (vpoly)
+		vpoly->splitTriangle(v);
+	QString log = "TOOL poly_refinement " + vpoly->name() + " " + QString("%1").arg(v) + "\n";
+	logs[vpoly->name() + "_tool"] = log;
+	unsigned int post_ntri = vpoly->NumTriangles();
+	return "The refinement of " + vpoly->name() + " is finished.\nThe number of triangles is increased from " + QString("%1").arg(pre_ntri) + " to " + QString("%1").arg(post_ntri);
 }
 
 cube* geometryObjects::makeCube(
@@ -177,6 +195,18 @@ polygonObject* geometryObjects::makePolygonObject
 		<< "GEOMETRY_USE " << (int)gu << endl
 		<< "IMPORT_SHAPE_TYPE " << (int)t << endl
 		<< "MATERIAL " << e << " " << p << " " << d << " " << s << endl;
+	QStringList l = logs.keys();
+	QString tg = nm + "_tool";
+	QStringList::const_iterator it = qFind(l, nm + "_tool");
+	if (it != l.end())
+	{
+		qts << logs[tg] << endl;
+		logs.take(tg);
+	}
+	else
+	{
+		qts << "TOOL none none 0" << endl;
+	}
 	logs[po->Name()] = log;
 	return po;
 }

@@ -107,8 +107,8 @@ bool multibodyDynamics::initialize(startingModel* stm)
 	divalpha = 1 / (1 + alpha);
 	divbeta = -1 / (beta*simulation::dt*simulation::dt);
 	cjaco.alloc(nnz + (nm)* 4, tdim - mdim, mdim);
-	if (!stm)
-	{
+	//if (!stm)
+	//{
 		FULL_LEOM();
 		QFile qf(model::path + "/" + "mat.txt");
 		qf.open(QIODevice::WriteOnly);
@@ -125,17 +125,18 @@ bool multibodyDynamics::initialize(startingModel* stm)
 		linearSolver ls(LAPACK_COL_MAJOR, tdim, 1, tdim, tdim);
 		int info = ls.solve(lhs.getDataPointer(), rhs.get_ptr());
 		qDebug() << info;
-	}
-	else
-	{
- 		foreach(drivingConstraint* dc, md->drivingConstraints())
- 		{
- 			/*dc->updateInitialCondition();*/
-			dc->setPlusTime(stm->endTime());
- 		}
-		rhs.CopyFromPtr(stm->RHS());
+//	}
+//	else
+//	{
+
+//  		foreach(drivingConstraint* dc, md->drivingConstraints())
+//  		{
+//  			/*dc->updateInitialCondition();*/
+// 			dc->setPlusTime(stm->endTime());
+//  		}
+// 		rhs.CopyFromPtr(stm->RHS());
 		//memcpy(rhs, stm->RHS(), sizeof(double) * tdim);
-	}
+	//}
 	unsigned int idx = 0;
 	foreach(pointMass* pm, md->pointMasses())
 	{
@@ -149,7 +150,7 @@ bool multibodyDynamics::initialize(startingModel* stm)
 	foreach(kinematicConstraint* kconst, md->kinConstraint())
 	{
 		kconst->setLagrangeMultiplierPointer(m_lag);
-		//m_lag += kconst->numConst();
+		m_lag += kconst->numConst();
 	}
 	//constraintEquation();
 	qf_out.setFileName(model::path + "/" + model::name + ".mrf");
@@ -184,31 +185,6 @@ void multibodyDynamics::calcMassMatrix(double mul /* = 1.0 */)
 		}
 		idx += pm->NumDOF();
 	}
-// 	for (massIterator it = md->pointMasses().begin(); it != md->pointMasses().end(); it++){
-// 		pointMass* m = it.value();
-// 
-// 		if (md->mode2D())
-// 		{
-// 			int idx = m->ID() * 3;
-// 			lhs(idx, idx) = lhs(idx + 1, idx + 1) = mul * m->Mass();
-// 			lhs(idx + 2, idx + 2) = mul * m->getPriInertia().z;
-// 			//	cnt += 3;
-// 		}
-// 		else
-// 		{
-// 			int idx = m->ID() * 7;
-// 			lhs(idx, idx) = lhs(idx + 1, idx + 1) = lhs(idx + 2, idx + 2) = mul * m->Mass();
-// 			idx += 3;
-// 			MAT44D LTJL = 4.0*mul*transpose(m->getEP().G(), m->getInertia() * m->getEP().G());
-// 			for (int j(0); j < 4; j++){
-// 				for (int k(0); k < 4; k++){
-// 					if (LTJL(j, k))
-// 						lhs(idx + j, idx + k) = LTJL(j, k);
-// 				}
-// 			}
-// 			//cnt += 4;
-// 		}
-// 	}
 }
 
 VEC4D multibodyDynamics::calcInertiaForce(EPD& ev, MAT33D& J, EPD& ep)
@@ -313,8 +289,6 @@ void multibodyDynamics::FULL_LEOM()
 bool multibodyDynamics::saveResult(double ct)
 {
 	unsigned int cnt = 0;
-	//	QTextStream qts(&qf_out);
-	//qf_out.write((char*)&p, sizeof(unsigned int));
 	foreach(pointMass* m, md->pointMasses())
 	{
 		VEC3D aa = 2.0 * m->getEP().G() * m->getEA();
@@ -332,33 +306,11 @@ bool multibodyDynamics::saveResult(double ct)
 			m->Mass() * model::gravity + m->getCollisionForce() + m->getExternalForce() + m->getHydroForce()
 		};
 		model::rs->insertPointMassResult(m->Name(), pmr);
-		//m->appendResultData(pmr);
 	}
 	foreach(kinematicConstraint* k, md->kinConstraint())
 	{
 		k->calculation_reaction_force(ct);
 	}
-	// 	for (massIterator it = md->pointMasses().begin(); it != md->pointMasses().end(); it++)
-	// 	{
-	// 		
-	// 		pointMass *m = it.value();
-	// 		if (m->ID() == 0)
-	// 			continue;
-	// 		unsigned int name_size = m->name().size();
-	// 		qf_out.write((char*)&name_size, sizeof(unsigned int));
-	// 		qf_out.write((char*)m->name().toStdString().c_str(), sizeof(char) * m->name().size());
-	// 		qf_out.write((char*)&cnt, sizeof(unsigned int));
-	// 		qf_out.write((char*)&ct, sizeof(double));
-	// 		qf_out.write((char*)&(m->Position()), sizeof(VEC3D));
-	// 		qf_out.write((char*)&(m->getEP()), sizeof(EPD));
-	// 		qf_out.write((char*)&(m->getVelocity()), sizeof(VEC3D));
-	// 		qf_out.write((char*)&(m->getEV()), sizeof(EPD));
-	// 		qf_out.write((char*)&(m->getAcceleration()), sizeof(VEC3D));
-	// 		qf_out.write((char*)&(m->getEA()), sizeof(EPD));
-	// 	//	m->getGeometryObject()->insertResultData(outCount, m->Position(), m->getEP());
-	// 		cnt++;
-	// 	}
-	//outCount++;
 	return true;
 }
 
@@ -529,21 +481,35 @@ MAT44D multibodyDynamics::D(VEC3D& a, VEC3D& lag)
 
 void multibodyDynamics::calcConstraintSystemJacobian(double mul)
 {
+// 	for (massIterator m = md->pointMasses().begin(); m != md->pointMasses().end(); m++){
+// 		pointMass* ms = m.value();
+// 		if (ms->MassType() == pointMass::GROUND)
+// 			continue;
+// 		size_t id = (ms->ID() - 1) * 7;
+// 		MAT44D Dv;
+// 		size_t sr = tdim - mdim;
+// 		Dv = lagMul[sr - ms->ID()] * 2.0;
+// 		lhs.plus(id + 3, id + 3, POINTER(Dv), MAT4x4);
+// 	}
+	unsigned int idx = 0;
+	unsigned int  sr = tdim - mdim - md->pointMasses().size();
+	foreach(pointMass* pm, md->pointMasses())
+	{
+		if (pm->NumDOF() == DIM2)
+			continue;
+		MAT44D Dv;
+		
+		double lm = lagMul[sr++];
+		Dv.setDiagonal(lm);
+		lhs.plus(idx + 3, idx + 3, POINTER(Dv), MAT4x4, mul);
+		//cjaco.extraction(idx + 3, idx + 3, ep2.Pointer(), 4);
+		idx += pm->NumDOF();
+	}
 	foreach(kinematicConstraint *kc, md->kinConstraint())
 	{
 		kc->derivate(lhs, mul);
-	//	sr += kc->numConst();
 	}
-// 	for (massIterator m = md->pointMasses().begin(); m != md->pointMasses().end(); m++){
-// // 		pointMass* ms = m.value();
-// // 		if (ms->MassType() == pointMass::GROUND)
-// // 			continue;
-// // 		size_t id = (ms->ID() - 1) * 7;
-// // 		MAT44D Dv;
-// // 		size_t sr = tdim - mdim;
-// // 		Dv = lagMul[sr - ms->ID()] * 2.0;
-// // 		lhs.plus(id + 3, id + 3, POINTER(Dv), MAT4x4);
-// 	}
+	
 // 	for (unsigned int i = 0; i < lhs.rows(); i++){
 // 		for (unsigned int j = 0; j < lhs.cols(); j++){
 // 			lhs(i, j) += mul * lhs(i, j);

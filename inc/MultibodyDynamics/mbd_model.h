@@ -31,6 +31,9 @@ public:
 	pointMass* createPointMass(
 		QString _name, double mass, VEC3D piner, VEC3D siner, 
 		VEC3D p, EPD ep = EPD(1.0, 0.0, 0.0, 0.0));
+	pointMass* createPointMassWithGeometry(
+		int gt, QString _name, double mass, VEC3D piner, VEC3D siner,
+		VEC3D p, EPD ep = EPD(1.0, 0.0, 0.0, 0.0));
 	void insertPointMass(pointMass* _pm);
 	pointMass* Ground();
 	kinematicConstraint* createKinematicConstraint(

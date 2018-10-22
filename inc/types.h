@@ -4,6 +4,8 @@
 #include <QStringList>
 #include "vectorTypes.h"
 
+#define RAD2DEG(r) r * 180.0 / M_PI 
+
 #define DEFAULT_GRAVITY 9.80665
 
 #define STEEL_YOUNGS_MODULUS 2e+011
@@ -60,7 +62,7 @@ inline QStringList getPreDefinedMBDList()
 {
 	QStringList stList;
 	//stList.push_back("SliderCrank3D");
-	stList.push_back("FullCarModel");
+	stList.push_back("test_model");
 	return stList;
 }
 
@@ -96,6 +98,7 @@ enum kernel_type{ CUBIC_SPLINE = 0, QUADRATIC, QUINTIC, WENDLAND, GAUSS, MODIFIE
 enum boundary_type{ DUMMY_PARTICLE_METHOD };
 enum import_shape_type { NO_SUPPORT_FORMAT = 0, MILKSHAPE_3D_ASCII, STL_ASCII };
 enum context_object_type{ VIEW_OBJECT = 0, GEOMETRY_OBJECT, CONSTRAINT_OBJECT, CONTACT_OBJECT };
+enum context_menu{ CONTEXT_PROPERTY = 0, CONTEXT_REFINEMENT };
 
 typedef struct 
 {
@@ -190,6 +193,17 @@ typedef struct
 	VEC3D W;
 	VEC3D N;
 }host_polygon_info;
+
+typedef struct
+{
+	int id;
+	VEC3F P;
+	VEC3F Q;
+	VEC3F R;
+	VEC3F V;
+	VEC3F W;
+	VEC3F N;
+}host_polygon_info_f;
 
 typedef struct
 {

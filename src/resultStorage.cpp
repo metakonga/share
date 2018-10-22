@@ -14,6 +14,9 @@ resultStorage::resultStorage()
 	, color(NULL)
 	, time(NULL)
 	, cramp(NULL)
+	, pos_f(NULL)
+	, vel_f(NULL)
+	, press_f(NULL)
 	, cpart(0)
 	, np(0)
 	, nfluid(0)
@@ -69,6 +72,13 @@ ucolors::colorMap * resultStorage::ColorMap()
 double resultStorage::RequriedMemory(unsigned int n, unsigned int npart, solver_type ts)
 {
 	int pn = ts == DEM ? 4 : 3;
+	if (isSingle)
+	{
+		float m_size = 0.0f;
+		m_size += sizeof(float) * npart;
+		m_size += sizeof(float) * n * pn * npart;
+		return m_size;
+	}
 	double m_size = 0.0;
 	m_size += sizeof(double) * npart;
 	m_size += sizeof(double) * n * pn * npart;
@@ -122,6 +132,21 @@ double* resultStorage::getPartPressure(unsigned int pt)
 	return press + (np * pt);
 }
 
+float* resultStorage::getPartPosition_f(unsigned int pt)
+{
+	return pos_f + (np * pdata_type * pt);
+}
+
+float* resultStorage::getPartVelocity_f(unsigned int pt)
+{
+	return vel_f + (np * 3 * pt);
+}
+
+float* resultStorage::getPartPressure_f(unsigned int pt)
+{
+	return press_f + (np * pt);
+}
+
 double* resultStorage::getPartColor(unsigned int pt)
 {
 	return color + (np * 4 * pt);
@@ -144,6 +169,9 @@ void resultStorage::clearMemory()
 	if (pos) delete[] pos; pos = NULL;
 	if (vel) delete[] vel; vel = NULL;
 	if (press) delete[] press; press = NULL;
+	if (pos_f) delete[] pos_f; pos_f = NULL;
+	if (vel_f) delete[] vel_f; vel_f = NULL;
+	if (press_f) delete[] press_f; press_f = NULL;
 	if (isf) delete[] isf; isf = NULL;
 	if (color) delete[] color; color = NULL;
 	if (cramp) delete cramp; cramp = NULL;
@@ -154,23 +182,37 @@ void resultStorage::clearMemory()
 void resultStorage::allocMemory(unsigned int n, unsigned int npart, solver_type ts)
 {
 	int pn = ts == DEM ? 4 : 3;
-	
 	time = new double[npart]; memset(time, 0, sizeof(double)*npart);
-	pos = new double[(n * pn) * npart]; memset(pos, 0, sizeof(double) * n * pn * npart);
-	//vel = new double[(n * 3) * npart]; memset(vel, 0, sizeof(double) * n * 3 * npart);	
-	//color = new double[(n * 4) * npart]; memset(color, 0, sizeof(double) * n * 4 * npart);
-	//cramp = new ucolors::colorMap(npart);
-	pdata_type = pn;
-	if (ts == SPH)
+	if (isSingle)
 	{
-		type = new particle_type[n]; memset(type, 0, sizeof(particle_type)*n);
-		press = new double[n * npart]; memset(press, 0, sizeof(double) * n * npart);
-		isf = new bool[n * npart]; memset(isf, 0, sizeof(bool) * n * npart);
+		pdata_type = pn;
+		pos_f = new float[(n * pn) * npart]; memset(pos_f, 0, sizeof(float) * n * pn * npart);
+		if (ts == SPH)
+		{
+			type = new particle_type[n]; memset(type, 0, sizeof(particle_type)*n);
+			press_f = new float[n * npart]; memset(press, 0, sizeof(float) * n * npart);
+			isf = new bool[n * npart]; memset(isf, 0, sizeof(bool) * n * npart);
+		}
 	}
-	else if (ts == DEM)
-	{
-		//cramp->setTarget(ucolors::COLORMAP_VELOCITY_MAG);
+	else
+	{		
+		pos = new double[(n * pn) * npart]; memset(pos, 0, sizeof(double) * n * pn * npart);
+		//vel = new double[(n * 3) * npart]; memset(vel, 0, sizeof(double) * n * 3 * npart);	
+		//color = new double[(n * 4) * npart]; memset(color, 0, sizeof(double) * n * 4 * npart);
+		//cramp = new ucolors::colorMap(npart);
+		pdata_type = pn;
+		if (ts == SPH)
+		{
+			type = new particle_type[n]; memset(type, 0, sizeof(particle_type)*n);
+			press = new double[n * npart]; memset(press, 0, sizeof(double) * n * npart);
+			isf = new bool[n * npart]; memset(isf, 0, sizeof(bool) * n * npart);
+		}
+		else if (ts == DEM)
+		{
+			//cramp->setTarget(ucolors::COLORMAP_VELOCITY_MAG);
+		}
 	}
+	
 	
 // 	QStringList pm = pmrd.keys();
 // 	for (unsigned int i = 0; i < pmrd.size(); i++)
@@ -230,17 +272,16 @@ void resultStorage::setResultMemorySPH(unsigned int npart)
 // 	delete[] t_color; t_color = NULL;
 }
 
-void resultStorage::setResultMemoryDEM(unsigned int npart, unsigned int _np)
+void resultStorage::setResultMemoryDEM(bool _isSingle, unsigned int npart, unsigned int _np)
 {
 	np = _np;
 	total_parts = npart;
+	isSingle = _isSingle;
 	clearMemory();
 	if (!isAllocMemory)
 	{
-		//RequriedMemory(np, total_parts, DEM);
-		allocMemory(np, total_parts, DEM);
+		allocMemory(np, total_parts, DEM);			
 	}
-		
 }
 
 void resultStorage::insertTimeDoubleResult(QString& nm, time_double& td)
@@ -409,45 +450,16 @@ void resultStorage::setPartDataFromBinary(unsigned int pt, QString file)
 	pf.read((char*)&time, sizeof(double));
 	pf.read((char*)&_np, sizeof(unsigned int));
 	//pf.read((char*)type, sizeof(particle_type) * np);
-	pf.read((char*)pos, sizeof(double) * np * 4);
+	int sz = isSingle ? sizeof(float) : sizeof(double);
+	pf.read((char*)(pos + (_np * pdata_type * pt)), sz * np * 4);
 	pf.close();
-	char pname[256] = { 0, };
-	QString part_name;
-	part_name.sprintf("part%04d", pt);
-	insertPartName(part_name);
-// 	pf.read((char*)vel, sizeof(double) * np * 3);
-// 	pf.read((char*)press, sizeof(double) * np);
-// 	pf.read((char*)isf, sizeof(bool) * np);
-// 
-// 	double grad = maxPress * 0.1f;
-// 	double t = 0.f;
-// 	for (unsigned int i = 0; i < nfluid; i++){
-// 		// 		if (type[i] != FLUID)
-// 		// 			continue;
-// 		if (isf[i]){
-// 			color[i * 4 + 0] = 1.0f;
-// 			color[i * 4 + 1] = 1.0f;
-// 			color[i * 4 + 2] = 1.0f;
-// 			color[i * 4 + 3] = 1.0f;
-// 			continue;
-// 		}
-// 
-// 		switch (type[i]){
-// 		case FLUID:
-// 			//t = (press[i] - 0) / grad;
-// 			if (cramp->target() == ucolors::COLORMAP_PRESSURE)
-// 				cramp->getColorRamp(0, press[i], &(color[i * 4]));
-// 			else if (cramp->target() == ucolors::COLORMAP_VELOCITY_X)
-// 				cramp->getColorRamp(0, vel[i * 3 + 0], &(color[i * 4]));
-// 			color[i * 4 + 3] = 1.0f;
-// 			break;
-// 		}
-// 	}
-// 	pf.close();
-// // 	if (!isDefined)
-// // 	{
-// // 		define();
-// // 	}
+	//pos + (np * pdata_type * pt);
+// 	char pname[256] = { 0, };
+// 	QString part_name;
+// 	part_name.sprintf("part%04d", pt);
+	insertTimeData(time);
+	insertPartName(file);
+	pf.close();
 }
 
 void resultStorage::openSphResultFiles(QStringList& slist)
@@ -482,13 +494,6 @@ void resultStorage::openSphResultFiles(QStringList& slist)
 		i++;
 		qDebug() << i;
 	}
-	//np = nfluid + nfloat + nbound + ndummy;
-
-// 	if (!isDefined)
-// 	{
-// 		define();
-// 	}
-// 	setMinMaxResult();
 }
 
 void resultStorage::insertDataSPH(particle_type* tp, double* _p, double* _v, double* _prs, bool isCalcContour /*= false*/)
@@ -498,6 +503,9 @@ void resultStorage::insertDataSPH(particle_type* tp, double* _p, double* _v, dou
 
 void resultStorage::exportEachResult2TXT(QString path)
 {
+	QFile qf_list(path + "_result_file_list.rfl");
+	qf_list.open(QIODevice::WriteOnly);
+	QTextStream qts_list(&qf_list);
 	QMapIterator<QString, QList<pointMassResultData>> m_pmrd(pmrs);
 	while (m_pmrd.hasNext())
 	{
@@ -522,6 +530,7 @@ void resultStorage::exportEachResult2TXT(QString path)
 				<< " " << p.ea.e0 << " " << p.ea.e1 << " " << p.ea.e2 << " " << p.ea.e3 << endl;
 		}
 		qf.close();
+		qts_list << "point_mass_result " << file_name << endl;
 	}
 	QMapIterator<QString, QList<reactionForceData>> m_rfd(rfrs);
 	while (m_rfd.hasNext())
@@ -559,6 +568,65 @@ void resultStorage::exportEachResult2TXT(QString path)
 		}
 		qf.close();
 	}
+	qts_list << "particle_result " << pList.size() << np << isSingle << endl;
+	foreach(QString n, pList)
+	{
+		qts_list << "part_result_list " << n << endl;
+	}
+	qf_list.close();
+}
+
+void resultStorage::openResultList(QString f)
+{
+	QFile qf(f);
+	qf.open(QIODevice::ReadOnly);
+	QTextStream qts(&qf);
+	QString ch;
+	unsigned int pt = 0;
+	while (!qf.atEnd())
+	{
+		qts >> ch;
+		if (ch == "point_mass_result")
+		{
+			qts >> ch;
+			QFile pmr(ch);
+			int begin = ch.lastIndexOf("/");
+			int end = ch.lastIndexOf(".");
+			QString fn = ch.mid(begin + 1, end - begin);
+			QTextStream qts_pm(&pmr);
+			pointMassResultData p;
+			while (!pmr.atEnd())
+			{
+				for (int i = 0; i < 20; i++)
+					qts_pm >> ch;
+				qts_pm
+					>> p.time >> p.pos.x >> p.pos.y >> p.pos.z
+					>> p.ep.e0 >> p.ep.e1 >> p.ep.e2 >> p.ep.e3
+					>> p.vel.x >> p.vel.y >> p.vel.z
+					>> p.omega.x >> p.omega.y >> p.omega.z
+					>> p.acc.x >> p.acc.y >> p.acc.z
+					>> p.alpha.x >> p.alpha.y >> p.alpha.z
+					>> p.ea.e0 >> p.ea.e1 >> p.ea.e2 >> p.ea.e3
+					>> p.force.x >> p.force.y >> p.force.z;				
+				insertPointMassResult(fn, p);
+			}			
+		}
+		else if (ch == "particle_result")
+		{
+			unsigned int _npart = 0;
+			unsigned int _np = 0;
+			int iss = 0;
+			qts >> _npart >> _np >> iss;
+			setResultMemoryDEM(iss, _npart, _np);
+		}
+		else if (ch == "part_result_list")
+		{
+			qts >> ch;
+			setPartDataFromBinary(pt, ch);
+			pt++;
+		}
+	}
+	qf.close();
 }
 
 QMap<QString, QList<VEC3D>>& resultStorage::linePointResults()

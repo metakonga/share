@@ -58,17 +58,21 @@ public:
 	double* getPartPosition(unsigned int pt);
 	double* getPartVelocity(unsigned int pt);
 	double* getPartPressure(unsigned int pt);
+	float* getPartPosition_f(unsigned int pt);
+	float* getPartVelocity_f(unsigned int pt);
+	float* getPartPressure_f(unsigned int pt);
 	double* getPartColor(unsigned int pt);
 	particle_type* getParticleType();
 	bool* getPartFreeSurface(unsigned int pt);
 	void allocMemory(unsigned int np, unsigned int npart = 1, solver_type ts = SPH);
 	void clearMemory();
 	void setResultMemorySPH(unsigned int npart);
-	void setResultMemoryDEM(unsigned int npart, unsigned int _np);
+	void setResultMemoryDEM(bool _isSingle, unsigned int npart, unsigned int _np);
 	void setPartDataFromBinary(unsigned int pt, QString file);
 	void openSphResultFiles(QStringList& slist);
 	void insertDataSPH(particle_type* tp, double* _p, double* _v, double* _prs, bool isCalcContour = false);
 	void exportEachResult2TXT(QString path);
+	void openResultList(QString f);
 
 	QMap<QString, QList<VEC3D>>& linePointResults();
 	QStringList& partList();
@@ -78,6 +82,7 @@ public:
 
 private:
 	bool isAllocMemory;
+	bool isSingle;
 	int pdata_type;
 	QStringList rList;
 	QStringList pList;
@@ -96,8 +101,11 @@ private:
 	double *time;
 	particle_type *type;
 	double *pos;
+	float *pos_f;
 	double *vel;
+	float *vel_f;
 	double *press;
+	float *press_f;
 	bool *isf;
 	double *color;
 

@@ -37,7 +37,8 @@ void modelManager::SaveCurrentModel()
 	QTextStream qts(&qf);
 	qts << "MODEL_NAME " << model::name << endl;
 	qts << "GRAVITY " << model::gravity.x << " " << model::gravity.y << " " << model::gravity.z << endl
-		<< "UNIT " << (int)model::unit << endl;
+		<< "UNIT " << (int)model::unit << endl
+		<< "SINGLE " << model::isSinglePrecision << endl << endl;
 	if (dem)
 		dem->Save(qts);
 	if (obj)
@@ -61,10 +62,13 @@ void modelManager::OpenModel(QString file_path)
 		if (ch == "MODEL_NAME")
 		{
 			int unit;
+			int iss;
 			qts >> ch;
 			model::setModelName(ch);
 			qts >> ch >> model::gravity.x >> model::gravity.y >> model::gravity.z;
 			qts >> ch >> unit;
+			qts >> ch >> iss;
+			model::isSinglePrecision = iss;
 			model::unit = (unit_type)unit;
 		}
 		else if (ch == "DEM_MODEL_DATA")

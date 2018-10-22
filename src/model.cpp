@@ -6,6 +6,7 @@ VEC3D model::gravity = VEC3D(0.0, -9.80665, 0.0);
 resultStorage* model::rs = NULL;// new resultStorage;
 int model::count = -1;
 unit_type model::unit = MKS;
+bool model::isSinglePrecision = false;
 
 model::model()
 {
