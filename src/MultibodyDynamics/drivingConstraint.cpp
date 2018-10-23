@@ -41,14 +41,14 @@ void drivingConstraint::define(
 	type = td;
 	init_v = init;
 	cons_v = cont;
-// 	if (td == DRIVING_ROTATION)
-// 	{
-// 		pointMass* im = kconst->iMass();
-// 		pointMass* jm = kconst->jMass();
-// 		VEC3D fi = im->toGlobal(kconst->f_i());
-// 		VEC3D fj = jm->toGlobal(kconst->f_j());
-// 		init_v = acos(fi.dot(fj));;
-// 	}
+	if (td == DRIVING_ROTATION)
+	{
+		pointMass* im = kconst->iMass();
+		pointMass* jm = kconst->jMass();
+		VEC3D fi = im->toGlobal(kconst->f_i());
+		VEC3D fj = jm->toGlobal(kconst->f_j());
+		init_v = acos(fi.dot(fj));;
+	}
 // 	else
 // 	{
 // 		VEC3D dist = kconst->CurrentDistance();
