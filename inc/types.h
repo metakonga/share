@@ -1,8 +1,19 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <QColor>
 #include <QStringList>
 #include "vectorTypes.h"
+
+static QColor colors[10] = { QColor("cyan"), QColor("magenta"), QColor("red"),
+QColor("darkRed"), QColor("darkCyan"), QColor("darkMagenta"),
+QColor("green"), QColor("darkGreen"), QColor("yellow"),
+QColor("blue") };
+
+enum color_type
+{ 
+	CYAN = 0, MAGENTA, RED, DARKRED, DARKCYAN, DARKMAGENTA, GREEN, DARKGREEN, YELLOW, BLUE
+};
 
 #define RAD2DEG(r) r * 180.0 / M_PI 
 
@@ -89,7 +100,6 @@ enum precision_type{ SINGLE_PRECISION, DOUBLE_PRECISION };
 enum solver_type{ DEM, SPH, MBD };
 enum fileFormat{ ASCII, BINARY };
 enum contactForce_type { DHS = 0 };
-enum color_type{ RED, GREEN, BLUE };
 enum unit_type{ MKS=0, MMKS };
 enum gravity_direction{ PLUS_X = 0, PLUS_Y, PLUS_Z, MINUS_X, MINUS_Y, MINUS_Z };
 enum particle_type { GEOMETRY = 0, FLUID, FLOATING, BOUNDARY, DUMMY, GHOST, FREE_DUMMY, FLOATING_DUMMY, PARTICLE_TYPE_COUNT };
