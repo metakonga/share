@@ -133,6 +133,15 @@ MAT44D D(VEC3D& s, VEC3D& d)
 		2 * (s.x*d.y - s.y*d.x), 2 * (s.x*d.z + s.z*d.x), 2 * (s.y*d.z + s.z*d.y), 4 * s.z*d.z);
 }
 
+inline VEC3D rotation_y(VEC3D v3, double th)
+{
+	VEC3D out;
+	out.x = v3.x * cos(th) + v3.z * sin(th);
+	out.y = v3.y;
+	out.z = -v3.x * sin(th) + v3.z * cos(th);
+	return out;
+}
+
 inline VEC3D operator*(const MAT34D& m3x4, EPD& v4)
 {
 	return VEC3D(
