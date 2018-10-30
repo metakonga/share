@@ -1,6 +1,6 @@
 #include "cableConstraint.h"
 #include "pointMass.h"
-#include "model.h"
+/*#include "model.h"*/
 
 cableConstraint::cableConstraint(QString _name, pointMass* _fi, VEC3D& _fspi, pointMass* _fj, VEC3D& _fspj, pointMass* _si, VEC3D& _sspi, pointMass* _sj, VEC3D& _sspj)
 	: kinematicConstraint()
@@ -223,7 +223,7 @@ void cableConstraint::calculation_reaction_force(double ct)
 		VEC3D(out(7), out(8), out(9)),
 		VEC4D(out(10), out(11), out(12), out(13))
 	};
-	model::rs->insertReactionForceResult(nm, rfd);// .push_back(rfd);
+	model::rs->insertReactionForceResult(nm, rfd);
 
 	model::rs->insertGLineData(nm + "_f_0", fi->Position() + fi->toGlobal(fspi));
 	model::rs->insertGLineData(nm + "_f_1", fj->Position() + fj->toGlobal(fspj));

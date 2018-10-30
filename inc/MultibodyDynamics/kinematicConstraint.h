@@ -5,6 +5,7 @@
 #include <QTextStream>
 #include "algebraMath.h"
 #include "pointMass.h"
+#include "model.h"
 //#include "resultStorage.h"
 //#include <mphysics_types.h>
 //#include "mbd_model.h"

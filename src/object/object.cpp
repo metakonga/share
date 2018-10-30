@@ -63,13 +63,16 @@ object::~object()
 
 void object::updateView(VEC3D p, VEC3D r)
 {
-	vobj->setInitialPosition(p);
-	marker->setInitialPosition(p);
 	r.x = RAD2DEG(r.x);
 	r.y = RAD2DEG(r.y);
 	r.z = RAD2DEG(r.z);
-	vobj->setInitialAngle(r);
-	marker->setInitialAngle(r);
+	vobj->updateView(p, r);
+	marker->updateView(p, r);
+// 	vobj->setInitialPosition(p);
+// 	marker->setInitialPosition(p);
+
+// 	vobj->setInitialAngle(r);
+// 	marker->setInitialAngle(r);
 }
 
 // void object::setMaterial(tMaterial _tm)

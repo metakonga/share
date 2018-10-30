@@ -12,7 +12,7 @@ public:
 		pointMass* jp, VEC3D& spj, VEC3D& _fj, VEC3D& _gj);
 	virtual ~translationalConstraint();
 
-	virtual void calculation_reaction_force(double ct) {};
+	virtual void calculation_reaction_force(double ct);
 	virtual void constraintEquation(double m, double* rhs);
 	virtual void constraintJacobian(SMATD& cjaco);
 	virtual void derivate(MATD& lhs, double mul);
