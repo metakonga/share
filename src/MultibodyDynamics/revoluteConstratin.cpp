@@ -107,22 +107,22 @@ void revoluteConstraint::derivate(MATD& lhs, double mul)
 
 void revoluteConstraint::calculation_reaction_force(double ct)
 {
-	SMATD jaco;
-	VECD out;
-	out.alloc(14);
-	jaco.alloc(54, 5, 14);
-	constraintJacobian(jaco);
-	for (unsigned int i = 0; i < jaco.nnz(); i++)
-	{
-		out(jaco.cidx[i]) += jaco.value[i] * lm[jaco.ridx[i] - srow];
-	}
-	resultStorage::reactionForceData rfd =
-	{
-		ct,
-		VEC3D(out(0), out(1), out(2)),
-		VEC4D(out(3), out(4), out(5), out(6)),
-		VEC3D(out(7), out(8), out(9)),
-		VEC4D(out(10), out(11), out(12), out(13))
-	};
-	model::rs->insertReactionForceResult(nm, rfd);// .push_back(rfd);
+// 	SMATD jaco;
+// 	VECD out;
+// 	out.alloc(14);
+// 	jaco.alloc(54, 5, 14);
+// 	constraintJacobian(jaco);
+// 	for (unsigned int i = 0; i < jaco.nnz(); i++)
+// 	{
+// 		out(jaco.cidx[i]) += jaco.value[i] * lm[jaco.ridx[i] - srow];
+// 	}
+// 	resultStorage::reactionForceData rfd =
+// 	{
+// 		ct,
+// 		VEC3D(out(0), out(1), out(2)),
+// 		VEC4D(out(3), out(4), out(5), out(6)),
+// 		VEC3D(out(7), out(8), out(9)),
+// 		VEC4D(out(10), out(11), out(12), out(13))
+// 	};
+// 	model::rs->insertReactionForceResult(nm, rfd);// .push_back(rfd);
 }

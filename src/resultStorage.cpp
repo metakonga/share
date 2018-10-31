@@ -517,7 +517,11 @@ void resultStorage::exportEachResult2TXT(QString path)
 		qts << "time "
 			<< "px " << "py " << "pz " << "ep0 " << "ep1 " << "ep2 " << "ep3 "
 			<< "vx " << "vy " << "vz " << "wx " << "wy " << "wz "
-			<< "ax " << "ay " << "az " << "apx " << "apy " << "apz " << endl;
+			<< "ax " << "ay " << "az " << "apx " << "apy " << "apz " 
+			<< "ea0 " << "ea1 " << "ea2 " << "ea3 " 
+			<< "tFx " << "tFy " << "tFz " 
+			<< "cFx " << "cFy " << "cFz "
+			<< "hFx " << "hFy " << "hFz " << endl;
 		foreach(pointMassResultData p, m_pmrd.value())
 		{
 			qts << p.time
@@ -527,7 +531,10 @@ void resultStorage::exportEachResult2TXT(QString path)
 				<< " " << p.omega.x << " " << p.omega.y << " " << p.omega.z
 				<< " " << p.acc.x << " " << p.acc.y << " " << p.acc.z
 				<< " " << p.alpha.x << " " << p.alpha.y << " " << p.alpha.z 
-				<< " " << p.ea.e0 << " " << p.ea.e1 << " " << p.ea.e2 << " " << p.ea.e3 << endl;
+				<< " " << p.ea.e0 << " " << p.ea.e1 << " " << p.ea.e2 << " " << p.ea.e3 
+				<< " " << p.tforce.x << " " << p.tforce.y << " " << p.tforce.z
+				<< " " << p.cforce.x << " " << p.cforce.y << " " << p.cforce.z
+				<< " " << p.hforce.x << " " << p.hforce.y << " " << p.hforce.z << endl;
 		}
 		qf.close();
 		qts_list << "point_mass_result " << file_name << endl;
@@ -597,7 +604,7 @@ void resultStorage::openResultList(QString f)
 			pointMassResultData p;
 			while (!pmr.atEnd())
 			{
-				for (int i = 0; i < 20; i++)
+				for (int i = 0; i < 33; i++)
 					qts_pm >> ch;
 				qts_pm
 					>> p.time >> p.pos.x >> p.pos.y >> p.pos.z
@@ -607,7 +614,9 @@ void resultStorage::openResultList(QString f)
 					>> p.acc.x >> p.acc.y >> p.acc.z
 					>> p.alpha.x >> p.alpha.y >> p.alpha.z
 					>> p.ea.e0 >> p.ea.e1 >> p.ea.e2 >> p.ea.e3
-					>> p.force.x >> p.force.y >> p.force.z;				
+					>> p.tforce.x >> p.tforce.y >> p.tforce.z
+					>> p.cforce.x >> p.cforce.y >> p.cforce.z
+					>> p.hforce.x >> p.hforce.y >> p.hforce.z;
 				insertPointMassResult(fn, p);
 			}			
 		}

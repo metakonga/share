@@ -303,7 +303,9 @@ bool multibodyDynamics::saveResult(double ct)
 			m->getAcceleration(),
 			aa,
 			m->getEA(),
-			m->Mass() * model::gravity + m->getCollisionForce() + m->getExternalForce() + m->getHydroForce()
+			m->Mass() * model::gravity + m->getCollisionForce() + m->getExternalForce() + m->getHydroForce(),
+			m->getCollisionForce(),
+			m->getHydroForce()
 		};
 		model::rs->insertPointMassResult(m->Name(), pmr);
 	}

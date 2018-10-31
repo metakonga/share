@@ -19,7 +19,9 @@ public:
 		VEC3D acc;
 		VEC3D alpha;
 		EPD ea;
-		VEC3D force;
+		VEC3D tforce;
+		VEC3D cforce;
+		VEC3D hforce;
 	}pointMassResultData;
 
 	typedef struct

@@ -293,6 +293,15 @@ MAT33D bryantAngle(double x, double y, double z)
 }
 
 inline
+MAT33D eulerAngle(double x, double y, double z)
+{
+	return MAT33D(
+		cos(x)*cos(z) - sin(x)*cos(y)*sin(z), -cos(x)*sin(z) - sin(x)*cos(y)*cos(z), sin(x)*sin(y),
+		sin(x)*cos(z) + cos(x)*cos(y)*sin(z), -sin(x)*sin(z) + cos(x)*cos(y)*cos(z), -cos(x)*sin(y),
+		sin(y)*sin(z), sin(y)*cos(z), cos(y));
+}
+
+inline
 VEC3D local2global_bryant(VEC3D ang, VEC3D v)
 {
 	return bryantAngle(ang.x, ang.y, ang.z) * v;
