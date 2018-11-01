@@ -333,6 +333,7 @@ pointMass* mbd_model::createPointMass(
 	rb->setEP(ep);
 	rb->setViewMarker(GLWidget::GLObject()->makeMarker(_name, p));
 	masses[_name] = rb;
+	modelManager::MM()->GeometryObject()->addMarkerObject(rb);
 	database::DB()->addChild(database::RIGID_BODY_ROOT, _name);
 	
 	QString log;
@@ -378,7 +379,9 @@ void mbd_model::Open(QTextStream& qts)
 				>> ch >> ep.e0 >> ep.e1 >> ep.e2 >> ep.e3
 				>> ch >> piner.x >> piner.y >> piner.z
 				>> ch >> siner.x >> siner.y >> siner.z;
-			pointMass* pm = dynamic_cast<pointMass*>(modelManager::MM()->GeometryObject()->Object(_name));
+			pointMass* pm = NULL;
+			if (modelManager::MM()->GeometryObject())
+				pm = dynamic_cast<pointMass*>(modelManager::MM()->GeometryObject()->Object(_name));
 			if(!pm)
 				createPointMass(_name, mass, piner, siner, p, ep);
 			else

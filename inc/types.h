@@ -73,7 +73,7 @@ inline QStringList getPreDefinedMBDList()
 {
 	QStringList stList;
 	//stList.push_back("SliderCrank3D");
-	stList.push_back("test_model");
+	stList.push_back("FullCarModel");
 	return stList;
 }
 

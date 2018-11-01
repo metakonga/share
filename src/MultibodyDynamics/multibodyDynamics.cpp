@@ -44,7 +44,7 @@ bool multibodyDynamics::initialize(startingModel* stm)
 	alpha = -0.3;
 	beta = (1 - alpha) * (1 - alpha) / 4;
 	gamma = 0.5 - alpha;
-	eps = 1E-6;
+	eps = 1E-4;
 	unsigned int nm = md->pointMasses().size();
 // 	int od = md->mode2D() ? 3 : 7;
 // 	int minus2D = md->mode2D() ? -3 : 0;
@@ -101,11 +101,7 @@ bool multibodyDynamics::initialize(startingModel* stm)
 	ipv.alloc(mdim); ipv.zeros();
 	ee.alloc(tdim); ee.zeros();
 	cEQ.alloc(tdim - mdim); cEQ.zeros();
-	dt2accp = simulation::dt*simulation::dt*(1 - 2 * beta)*0.5;
-	dt2accv = simulation::dt*(1 - gamma);
-	dt2acc = simulation::dt*simulation::dt*beta;
-	divalpha = 1 / (1 + alpha);
-	divbeta = -1 / (beta*simulation::dt*simulation::dt);
+	
 	cjaco.alloc(nnz + (nm)* 4, tdim - mdim, mdim);
 	//if (!stm)
 	//{
@@ -155,6 +151,26 @@ bool multibodyDynamics::initialize(startingModel* stm)
 	//constraintEquation();
 	qf_out.setFileName(model::path + "/" + model::name + ".mrf");
 	simulation::setStartTime(md->StartTimeForSimulation());
+	
+// 	if (simulation::dt < 1e-4)
+// 	{
+// 		double pdt = simulation::dt;
+// 		simulation::dt = 1e-4;
+// 		dt2accp = simulation::dt*simulation::dt*(1 - 2 * beta)*0.5;
+// 		dt2accv = simulation::dt*(1 - gamma);
+// 		dt2acc = simulation::dt*simulation::dt*beta;
+// 		divalpha = 1 / (1 + alpha);
+// 		divbeta = -1 / (beta*simulation::dt*simulation::dt);
+// 		oneStepAnalysis(0, 0);
+// 		simulation::dt = pdt;		
+// 	}
+	dt2accp = simulation::dt*simulation::dt*(1 - 2 * beta)*0.5;
+	dt2accv = simulation::dt*(1 - gamma);
+	dt2acc = simulation::dt*simulation::dt*beta;
+	divalpha = 1 / (1 + alpha);
+	divbeta = -1 / (beta*simulation::dt*simulation::dt);
+	paraPredictor.init(rhs.get_ptr(), rhs.sizes());
+	paraPredictor.getTimeStep() = simulation::dt;
 	return true;
 }
 
@@ -392,6 +408,7 @@ void multibodyDynamics::prediction(unsigned int cs)
 		idx += pm->NumDOF();
 	}
 	idx = 0;
+	paraPredictor.apply(cs);
 	foreach(pointMass* pm, md->pointMasses())
 	{
 		VEC3D p, v;
@@ -725,9 +742,10 @@ int multibodyDynamics::correction(unsigned int cs)
 				pm->makeTransformationMatrix2D();
 			}
 		}
-		if (e_norm <= 1e-5)
+		if (e_norm <= 1e-4)
 		{
-			n_NR_iteration += niter;
+    			n_NR_iteration += niter;
+				//simulation::dt = 5e-6;
 			break;
 		}
 	}

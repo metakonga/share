@@ -16,8 +16,8 @@ modelManager::modelManager()
 modelManager::~modelManager()
 {
 	qDeleteAll(objs);
-	qDeleteAll(dems);
 	qDeleteAll(mbds);
+	qDeleteAll(dems);	
 	qDeleteAll(contacts);
 	//qDeleteAll(pms);
 }

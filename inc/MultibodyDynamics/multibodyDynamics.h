@@ -6,6 +6,7 @@
 #include "kinematicConstraint.h"
 #include "mbd_model.h"
 #include "pointMass.h"
+#include "utility/parabola_predictor.h"
 #include <QFile>
 
 class waveGeneratorModel;
@@ -89,6 +90,7 @@ private:
 	QFile qf_out;
 	unsigned int outCount;
 	mbd_model* md;
+	utility::parabola_predictor paraPredictor;
 };
 
 #endif

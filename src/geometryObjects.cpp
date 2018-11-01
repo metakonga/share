@@ -10,7 +10,7 @@ geometryObjects::geometryObjects()
 
 geometryObjects::~geometryObjects()
 {
-	qDeleteAll(objs);
+	qDeleteAll(markers);
 }
 
 void geometryObjects::Save(QTextStream& qts)
@@ -85,7 +85,7 @@ void geometryObjects::Open(QTextStream& qts)
 				>> ch >> ist
 				>> ch >> e >> p >> d >> s
 				>> ch >> tt >> ch >> v;
-			vpolygon* vp = GLWidget::GLObject()->makePolygonObject(_name, (import_shape_type)ist, file);
+			vpolygon* vp = GLWidget::GLObject()->makePolygonObject(_name, (import_shape_type)ist, file, loc.x, loc.y, loc.z);
 			if (tt == "poly_refinement" && v)
 				polyRefinement(ch, v);// ->splitTriangle(v);
 			makePolygonObject(
@@ -99,6 +99,8 @@ void geometryObjects::Open(QTextStream& qts)
 void geometryObjects::insertObject(object* _obj)
 {
 	objs[_obj->Name()] = _obj;
+	markers.push_back(_obj);
+	//pms.push_back(dynamic_cast<pointMass*>(_obj));
 }
 
 object* geometryObjects::Object(QString n)
@@ -130,6 +132,7 @@ cube* geometryObjects::makeCube(
 	c->define(start, end);
 	c->setMaterial(mt, e, d, p, s);
 	objs[_name] = c;
+	markers.push_back(c);
 	GLWidget::GLObject()->makeCube(c);
 	database::DB()->addChild(database::CUBE_ROOT, c->Name());
 
@@ -155,6 +158,7 @@ plane* geometryObjects::makePlane(
 	pl->define(pa, pb, pc, pd);
 	pl->setMaterial(mt, e, d, p, s);
 	objs[_name] = pl;
+	markers.push_back(pl);
 	GLWidget::GLObject()->makePlane(pl);
 	database::DB()->addChild(database::PLANE_ROOT, pl->Name());
 
@@ -182,6 +186,7 @@ polygonObject* geometryObjects::makePolygonObject
 	po->setMaterial(mt, e, d, p, s);
 	po->define(t, loc, ntri, vertexList, indexList);
 	objs[nm] = po;
+	markers.push_back(po);
 	pobjs[polygonObject::Number()] = po;
 	database::DB()->addChild(database::POLYGON_ROOT, po->Name());
 

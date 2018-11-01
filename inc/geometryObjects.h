@@ -7,7 +7,7 @@ class cube;
 class plane;
 class cylinder;
 class polygonObject;
-
+class pointMass;
 
 class geometryObjects
 {
@@ -22,6 +22,7 @@ public:
 	QMap<QString, QString>& Logs() { return logs; }
 	object* Object(QString n);// { return objs[n]; }
 	QString polyRefinement(QString n, double v);
+	void addMarkerObject(object* o){ markers.push_back(o); }
 	cube* makeCube(
 		QString _name, material_type mt, geometry_use gu, 
 		VEC3D& start, VEC3D& end, double e, double p, double d, double s);
@@ -37,6 +38,7 @@ public:
 private:
 	QMap<QString, QString> logs;
 	QMap<QString, object*> objs;
+	QList<object*> markers;
 	QMap<int, polygonObject*> pobjs;
 };
 
