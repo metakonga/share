@@ -74,11 +74,18 @@ private:
 
 	void calculateRhs();
 	void FULL_LEOM();
+	void FULL_LEOM(VECD& y, double t);
+	bool initialize_implicit_hht();
+	bool initialize_explicit_rk4();
 	void calcMassMatrix(double mul = 1.0);
+	void calcMassMatrix(VECD& y);
 	void calcForceVector(VECD *vec = NULL);
+	void calcForceVector(VECD& y, double t);
 	VEC4D calcInertiaForce(EPD& ev, MAT33D& J, EPD& ep);
 	VEC4D calcMoment(EPD& ep, VEC3D& m);
 	void sparseConstraintJacobian();
+	void sparseConstraintJacobian(VECD& y, double t);
+	void runke_kutta_method(unsigned int cs);
 
 	void calcMassSystemJacobian(double mul);
 	void calcForceSystemJacobian(double gamma, double beta);
@@ -87,6 +94,7 @@ private:
 	MAT44D D(VEC3D& a, VEC3D& lag);
 	void constraintEquation();
 
+	integrator_type itor_type;
 	QFile qf_out;
 	unsigned int outCount;
 	mbd_model* md;

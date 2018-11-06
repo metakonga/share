@@ -138,3 +138,30 @@ void translationalConstraint::derivate(MATD& lhs, double mul)
 	Dv += lm[4] * transpose(B(jb->getEP(), fj), B(ib->getEP(), fi));
 	lhs.plus(jcol + 3, icol + 3, POINTER(Dv), MAT4x4, mul);
 }
+
+void translationalConstraint::differentialEquation(double *rhs, double* q, double *dq, double t)
+{
+	bool ig = ib->MassType() == pointMass::GROUND;
+	bool jg = jb->MassType() == pointMass::GROUND;
+	int i = ig ? -1 : ib->ID() * 7;
+	int j = jg ? -1 : jb->ID() * 7;
+	VEC3D ri = ig ? ib->Position() : VEC3D(q[i + 0], q[i + 1], q[i + 2]);
+	VEC3D rj = jg ? jb->Position() : VEC3D(q[j + 0], q[j + 1], q[j + 2]);
+	VEC3D dri = ig ? ib->getVelocity() : VEC3D(dq[i + 0], q[i + 1], q[i + 2]);
+	VEC3D drj = jg ? jb->getVelocity() : VEC3D(dq[j + 0], q[j + 1], q[j + 2]);
+	EPD pi = ig ? ib->getEP() : EPD(q[i + 3], q[i + 4], q[i + 5], q[i + 6]);
+	EPD pj = jg ? jb->getEP() : EPD(q[j + 3], q[j + 4], q[j + 5], q[j + 6]);
+	EPD dpi = ig ? ib->getEV() : EPD(dq[i + 3], dq[i + 4], dq[i + 5], dq[i + 6]);
+	EPD dpj = jg ? jb->getEV() : EPD(dq[j + 3], dq[j + 4], dq[j + 5], dq[j + 6]);
+	VEC3D dij = rj + pj.toGlobal(spj) - ri - pi.toGlobal(spi);
+	double d1_0 = dot_1_differential(fi, hj, pi, pj, dpi, dpj);
+	double d1_1 = dot_1_differential(gi, hj, pi, pj, dpi, dpj);
+	double d2_0 = dot_2_differential(fi, dri, drj, dij, pi, pj, dpi, dpj);
+	double d2_1 = dot_2_differential(gi, dri, drj, dij, pi, pj, dpi, dpj);
+	double d1_2 = dot_1_differential(fi, fj, pi, pj, dpi, dpj);
+	rhs[srow + 0] = d1_0;
+	rhs[srow + 1] = d1_1;
+	rhs[srow + 2] = d2_0;
+	rhs[srow + 3] = d2_1;
+	rhs[srow + 4] = d1_2;
+}

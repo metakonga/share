@@ -19,6 +19,7 @@ public:
 	pointMass* ActionBody();
 	Type ForceType();
 	virtual void calcForce(VECD* rhs) = 0;
+	virtual void calcForce(double* rhs, double* q, double *qd, double t) = 0;
 	virtual void derivate(MATD& lhs, double mul) = 0;
 	virtual void derivate_velocity(MATD& lhs, double mul) = 0;
 	virtual void saveData(QTextStream& qts) = 0;

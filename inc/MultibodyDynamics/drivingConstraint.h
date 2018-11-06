@@ -26,8 +26,9 @@ public:
 	//pointMass* ActionBody(){ return m; }
 	void updateInitialCondition();
 	//double constraintEquation(double ct);
-	virtual void constraintEquation(double m, double* rhs);
-	virtual void constraintJacobian(SMATD& cjaco);
+	void constraintEquation(double m, double* rhs);
+	void constraintJacobian(SMATD& cjaco, double ct);
+	void differentialEquation(double* q, double *dq, double *rhs);
 	//virtual void constraintEquation2D(double m) {};
 
 	void setStartRow(unsigned int _sr) { srow = _sr; }

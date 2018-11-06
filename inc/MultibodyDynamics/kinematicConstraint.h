@@ -66,10 +66,16 @@ public:
 	virtual void constraintEquation(double m, double* rhs) = 0;
 	virtual void constraintJacobian(SMATD& cjaco) = 0;
 	virtual void derivate(MATD& lhs, double mul) = 0;
+	virtual void differentialEquation(double *rhs, double* q, double *dq, double t) = 0;
 
 	//virtual void constraintEquation();
 
 protected:
+	VEC3D spherical_differential(EPD& dpi, EPD& dpj);
+	double dot_1_differential(VEC3D& ai, VEC3D& aj, EPD& pi, EPD& pj, EPD& dpi, EPD& dpj);
+	double dot_2_differential(VEC3D& ai, VEC3D& dri, VEC3D& drj, VEC3D& dij, EPD& pi, EPD& pj, EPD& dpi, EPD& dpj);
+	
+
 	QString nm;
 	pointMass* ib;
 	pointMass* jb;

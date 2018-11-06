@@ -73,6 +73,11 @@ void axialRotationForce::calcForce(VECD* rhs)
 	}
 }
 
+void axialRotationForce::calcForce(double* rhs, double* q, double *qd, double t)
+{
+
+}
+
 void axialRotationForce::saveData(QTextStream& qts)
 {
 	qts << endl

@@ -2,6 +2,7 @@
 #define EULER_PARAMETER_HPP
 
 #include "vector3.hpp"
+#include "vector4.hpp"
 #include "matrix3x3.hpp"
 #include "matrix3x4.hpp"
 
@@ -34,6 +35,7 @@ namespace algebra
 		}
 
 		T dot(euler_parameter& e) { return e0 * e.e0 + e1 * e.e1 + e2 * e.e2 + e3 * e.e3; }
+		T dot(vector4<T>& e) { return e0 * e.x + e1 * e.y + e2 * e.z + e3 * e.w; }
 
 		T length(){
 			return sqrt(dot());
@@ -145,6 +147,17 @@ namespace algebra
 			tv.x = TM.a00*v.x + TM.a10*v.y + TM.a20*v.z;
 			tv.y = TM.a01*v.x + TM.a11*v.y + TM.a21*v.z;
 			tv.z = TM.a02*v.x + TM.a12*v.y + TM.a22*v.z;
+			return tv;
+		}
+
+		vector3<T> toGlobal(vector3<T>& v)
+		{
+			vector3<T> tv;
+			matrix3x3<T> TM;
+			TM = A();
+			tv.x = TM.a00*v.x + TM.a01*v.y + TM.a02*v.z;
+			tv.y = TM.a10*v.x + TM.a11*v.y + TM.a12*v.z;
+			tv.z = TM.a20*v.x + TM.a21*v.y + TM.a22*v.z;
 			return tv;
 		}
 

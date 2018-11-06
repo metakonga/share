@@ -93,7 +93,7 @@ enum material_type{
 };
 enum geometry_use{	NO_USE_TYPE=-1, PARTICLE=0,	MASS,	BOUNDAR_WALL };
 enum mass_type{	NO_MASS_TYPE,	RIGID_BODY,	DEFORM_BODY };
-enum integrator_type{ EULER_METHOD,	VELOCITY_VERLET,	IMPLICIT_HHT };
+enum integrator_type{ INTEGRATOR = 0, EULER_METHOD,	VELOCITY_VERLET, IMPLICIT_HHT, EXPLICIT_RUNGE_KUTTA };
 enum device_type{ CPU,	GPU };
 enum dimension_type{ DIM2 = 3,	DIM3 = 7 };
 enum precision_type{ SINGLE_PRECISION, DOUBLE_PRECISION };

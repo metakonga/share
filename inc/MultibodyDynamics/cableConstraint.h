@@ -23,6 +23,7 @@ public:
 	virtual void constraintEquation(double m, double* rhs);
 	virtual void constraintJacobian(SMATD& cjaco);
 	virtual void derivate(MATD& lhs, double mul);
+	virtual void differentialEquation(double *rhs, double* q, double *dq, double t){};
 
 private:
 	double f_c;

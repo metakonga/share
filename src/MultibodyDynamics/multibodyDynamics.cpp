@@ -13,6 +13,7 @@ multibodyDynamics::multibodyDynamics()
 	: md(NULL)
 	, mdim(0)
 	, outCount(0)
+	, itor_type(INTEGRATOR)
 	//, permutation(NULL)
 {
 
@@ -22,6 +23,7 @@ multibodyDynamics::multibodyDynamics(mbd_model *_md)
 	: md(_md)
 	, mdim(0)
 	, outCount(0)
+	, itor_type(EXPLICIT_RUNGE_KUTTA)
 	//, permutation(NULL)
 {
 	//ground.setID(-1);
@@ -36,7 +38,8 @@ multibodyDynamics::~multibodyDynamics()
 	//if (permutation) delete[] permutation; permutation = NULL;
 }
 
-bool multibodyDynamics::initialize(startingModel* stm)
+
+bool multibodyDynamics::initialize_implicit_hht()
 {
 	outCount = 0;
 	int sdim = 0;
@@ -46,12 +49,6 @@ bool multibodyDynamics::initialize(startingModel* stm)
 	gamma = 0.5 - alpha;
 	eps = 1E-4;
 	unsigned int nm = md->pointMasses().size();
-// 	int od = md->mode2D() ? 3 : 7;
-// 	int minus2D = md->mode2D() ? -3 : 0;
-// 	if (nm)
-// 	{
-// 		mdim = nm * od;
-// 	}
 	unsigned int nr = 0;
 	foreach(pointMass* pm, md->pointMasses())
 	{
@@ -90,8 +87,8 @@ bool multibodyDynamics::initialize(startingModel* stm)
 	}
 	sdim += srow;
 	dof = mdim - sdim;
-// 	if (!(md->mode2D()))
-// 		sdim += md->pointMasses().size();
+	// 	if (!(md->mode2D()))
+	// 		sdim += md->pointMasses().size();
 	tdim = mdim + sdim;
 
 	lhs.alloc(tdim, tdim); lhs.zeros();
@@ -101,38 +98,26 @@ bool multibodyDynamics::initialize(startingModel* stm)
 	ipv.alloc(mdim); ipv.zeros();
 	ee.alloc(tdim); ee.zeros();
 	cEQ.alloc(tdim - mdim); cEQ.zeros();
-	
+
 	cjaco.alloc(nnz + (nm)* 4, tdim - mdim, mdim);
 	//if (!stm)
 	//{
-		FULL_LEOM();
-		QFile qf(model::path + "/" + "mat.txt");
-		qf.open(QIODevice::WriteOnly);
-		QTextStream qts(&qf);
-		for (unsigned int i = 0; i < lhs.rows(); i++)
+	FULL_LEOM();
+	QFile qf(model::path + "/" + "mat.txt");
+	qf.open(QIODevice::WriteOnly);
+	QTextStream qts(&qf);
+	for (unsigned int i = 0; i < lhs.rows(); i++)
+	{
+		for (unsigned int j = 0; j < lhs.cols(); j++)
 		{
-			for (unsigned int j = 0; j < lhs.cols(); j++)
-			{
-				qts << lhs(i, j) << " ";
-			}
-			qts << endl;
+			qts << lhs(i, j) << " ";
 		}
-		qf.close();
-		linearSolver ls(LAPACK_COL_MAJOR, tdim, 1, tdim, tdim);
-		int info = ls.solve(lhs.getDataPointer(), rhs.get_ptr());
-		qDebug() << info;
-//	}
-//	else
-//	{
-
-//  		foreach(drivingConstraint* dc, md->drivingConstraints())
-//  		{
-//  			/*dc->updateInitialCondition();*/
-// 			dc->setPlusTime(stm->endTime());
-//  		}
-// 		rhs.CopyFromPtr(stm->RHS());
-		//memcpy(rhs, stm->RHS(), sizeof(double) * tdim);
-	//}
+		qts << endl;
+	}
+	qf.close();
+	linearSolver ls(LAPACK_COL_MAJOR, tdim, 1, tdim, tdim);
+	int info = ls.solve(lhs.getDataPointer(), rhs.get_ptr());
+	qDebug() << info;
 	unsigned int idx = 0;
 	foreach(pointMass* pm, md->pointMasses())
 	{
@@ -151,19 +136,7 @@ bool multibodyDynamics::initialize(startingModel* stm)
 	//constraintEquation();
 	qf_out.setFileName(model::path + "/" + model::name + ".mrf");
 	simulation::setStartTime(md->StartTimeForSimulation());
-	
-// 	if (simulation::dt < 1e-4)
-// 	{
-// 		double pdt = simulation::dt;
-// 		simulation::dt = 1e-4;
-// 		dt2accp = simulation::dt*simulation::dt*(1 - 2 * beta)*0.5;
-// 		dt2accv = simulation::dt*(1 - gamma);
-// 		dt2acc = simulation::dt*simulation::dt*beta;
-// 		divalpha = 1 / (1 + alpha);
-// 		divbeta = -1 / (beta*simulation::dt*simulation::dt);
-// 		oneStepAnalysis(0, 0);
-// 		simulation::dt = pdt;		
-// 	}
+
 	dt2accp = simulation::dt*simulation::dt*(1 - 2 * beta)*0.5;
 	dt2accv = simulation::dt*(1 - gamma);
 	dt2acc = simulation::dt*simulation::dt*beta;
@@ -174,10 +147,101 @@ bool multibodyDynamics::initialize(startingModel* stm)
 	return true;
 }
 
+bool multibodyDynamics::initialize_explicit_rk4()
+{
+	outCount = 0;
+	int sdim = 0;
+	multibodyDynamics::nnz = 0;
+	unsigned int nm = md->pointMasses().size();
+	unsigned int nr = 0;
+	foreach(pointMass* pm, md->pointMasses())
+	{
+		pm->setID(nr++);
+		pm->setInertia();
+		mdim += pm->NumDOF();
+		if (pm->NumDOF() == DIM3)
+			sdim++;
+	}
+	unsigned int srow = 0;
+	foreach(kinematicConstraint* kconst, md->kinConstraint())
+	{
+		kconst->setStartRow(srow);
+		nnz += kconst->maxNNZ();
+		switch (kconst->constType())
+		{
+		case kinematicConstraint::FIXED:		srow += 6; break;
+		case kinematicConstraint::REVOLUTE:		srow += 5; break;
+		case kinematicConstraint::TRANSLATIONAL:	srow += 5; break;
+		case kinematicConstraint::SPHERICAL:		srow += 3; break;
+		case kinematicConstraint::UNIVERSAL:		srow += 4; break;
+		case kinematicConstraint::CABLE:			srow += 1; continue;
+		case kinematicConstraint::GEAR:				srow += 1; break;
+		case kinematicConstraint::COINCIDE:			srow += 1; break;
+		default:
+			break;
+		}
+		kconst->setFirstColumn(kconst->iMass()->ID() * kconst->iMass()->NumDOF());
+		kconst->setSecondColumn(kconst->jMass()->ID() * kconst->jMass()->NumDOF());
+	}
+	foreach(drivingConstraint* dc, md->drivingConstraints())
+	{
+		dc->setStartRow(srow++);
+		nnz += 7;
+	}
+	sdim += srow;
+	dof = mdim - sdim;
+	tdim = mdim + sdim;
+
+	lhs.alloc(tdim, tdim); lhs.zeros();
+	rhs.alloc(tdim); rhs.zeros();
+	ee.alloc(mdim * 2); ee.zeros();
+	cjaco.alloc(nnz + (nm)* 4, tdim - mdim, mdim);
+
+	FULL_LEOM();
+	linearSolver ls(LAPACK_COL_MAJOR, tdim, 1, tdim, tdim);
+	int info = ls.solve(lhs.getDataPointer(), rhs.get_ptr());
+	unsigned int idx = 0;
+	foreach(pointMass* pm, md->pointMasses())
+	{
+		VEC3D pos = pm->Position();
+		EPD ep = pm->getEP();
+		VEC3D vel = pm->getVelocity();
+		EPD ev = pm->getEV();
+		ee.insert(pm->ID() * 7, POINTER3(pos), POINTEREP(ep), 3, 4);
+		ee.insert(mdim + pm->ID() * 7, POINTER3(vel), POINTEREP(ev), 3, 4);
+		pm->setAcceleration(VEC3D(rhs(idx + 0), rhs(idx + 1), rhs(idx + 2)));
+		if (pm->NumDOF() == DIM3)
+			pm->setEA(EPD(rhs(idx + 3), rhs(idx + 4), rhs(idx + 5), rhs(idx + 6)));
+		idx += pm->NumDOF();
+	}
+	lagMul = rhs.get_ptr() + mdim;
+	double* m_lag = rhs.get_ptr() + mdim;
+	foreach(kinematicConstraint* kconst, md->kinConstraint())
+	{
+		kconst->setLagrangeMultiplierPointer(m_lag);
+		m_lag += kconst->numConst();
+	}
+	return true;
+}
+
+bool multibodyDynamics::initialize(startingModel* stm)
+{
+	bool ret = false;
+	switch (itor_type)
+	{
+	case EXPLICIT_RUNGE_KUTTA:
+		ret = initialize_explicit_rk4();
+		break;
+	default:
+		ret = initialize_implicit_hht();
+		break;
+	}
+	return ret;
+}
+
 void multibodyDynamics::calcMassMatrix(double mul /* = 1.0 */)
 {
 	int cnt = 0;
-//	lhs.resize(tdim, tdim);
 	lhs.zeros();
 	unsigned int idx = 0;
 	foreach(pointMass* pm, md->pointMasses())
@@ -197,6 +261,27 @@ void multibodyDynamics::calcMassMatrix(double mul /* = 1.0 */)
 					if (LTJL(j, k))
 						lhs(idx+3 + j, idx+3 + k) = LTJL(j, k);
 				}
+			}
+		}
+		idx += pm->NumDOF();
+	}
+}
+
+void multibodyDynamics::calcMassMatrix(VECD& y)
+{
+	int cnt = 0;
+	lhs.zeros();
+	unsigned int idx = 0;
+	foreach(pointMass* pm, md->pointMasses())
+	{
+		unsigned int id = pm->ID() * 7;
+		lhs(idx, idx) = lhs(idx + 1, idx + 1) = lhs(idx + 2, idx + 2) = pm->Mass();
+		EPD ep(y(id + 3), y(id + 4), y(id + 5), y(id + 6));
+		MAT44D LTJL = 4.0*transpose(ep.G(), pm->getInertia() * ep.G());
+		for (int j(0); j < 4; j++){
+			for (int k(0); k < 4; k++){
+				if (LTJL(j, k))
+					lhs(idx + 3 + j, idx + 3 + k) = LTJL(j, k);
 			}
 		}
 		idx += pm->NumDOF();
@@ -264,6 +349,50 @@ void multibodyDynamics::calcForceVector(VECD* vec)
 	}
 }
 
+void multibodyDynamics::calcForceVector(VECD& y, double t)
+{
+	//VECD *out = vec ? vec : &rhs;
+	//out->zeros();
+	//int nmass = md->pointMasses().size();
+	int i = 1;
+	int cnt = 0;
+	VEC3D nf;
+	VEC4D mm, im, rf;
+	VEC3D g = model::gravity;
+	VEC3D cm;
+	unsigned int idx = 0;
+	foreach(pointMass* pm, md->pointMasses())
+	{
+		unsigned int id = pm->ID() * 7;
+		EPD ep(y(id + 3), y(id + 4), y(id + 5), y(id + 6));
+		EPD ev(y(mdim + id + 3), y(mdim + id + 4), y(mdim + id + 5), y(mdim + id + 6));
+		nf = pm->Mass() * g + pm->getCollisionForce() + pm->getExternalForce() + pm->getHydroForce();
+		mm = calcMoment(ep, pm->getCollisionMoment() + pm->getExternalMoment() + pm->getHydroMoment());
+		rf = calcInertiaForce(ev, pm->getInertia(), ep);
+		//rf.x += mm.x; rf.y += mm.y; rf.z += mm.z; rf.w += mm.w;
+		rf += mm;
+		if (pm->NumDOF() == DIM2)
+		{
+// 			double m3 =
+// 				pm->getCollisionMoment().z +
+// 				pm->getExternalMoment().z +
+// 				pm->getHydroMoment().z;
+// 			(*rhs)(idx + 0) = nf.x;
+// 			(*out)(idx + 1) = nf.y;
+// 			(*out)(idx + 2) = m3;
+		}
+		else
+		{
+			rhs.insert(idx, POINTER3(nf), POINTER4(rf), 3, 4);
+		}
+		idx += pm->NumDOF();
+	}
+	foreach(forceElement* fe, md->forceElements())
+	{
+		fe->calcForce(rhs.get_ptr(), y.get_ptr(), y.get_ptr() + mdim, t);
+	}
+}
+
 void multibodyDynamics::sparseConstraintJacobian()
 {
 	cjaco.zeroCount();
@@ -276,7 +405,7 @@ void multibodyDynamics::sparseConstraintJacobian()
 	}
 	foreach(drivingConstraint* dc, md->drivingConstraints())
 	{
-		dc->constraintJacobian(cjaco);
+		dc->constraintJacobian(cjaco, simulation::ctime);
 		sr++;
 	}
 	unsigned int idx = 0;
@@ -290,6 +419,95 @@ void multibodyDynamics::sparseConstraintJacobian()
 	}
 }
 
+void multibodyDynamics::sparseConstraintJacobian(VECD& y, double t)
+{
+	cjaco.zeroCount();
+	unsigned int sr = 0;
+	foreach(kinematicConstraint* kc, md->kinConstraint())
+	{
+		//qDebug() << "kin_name : " << kc->name();
+		kc->constraintJacobian(cjaco);
+		sr += kc->numConst();
+	}
+	foreach(drivingConstraint* dc, md->drivingConstraints())
+	{
+		dc->constraintJacobian(cjaco, t);
+		sr++;
+	}
+	unsigned int idx = 0;
+// 	for (unsigned int i = 0; i < md->pointMasses().size(); i++)
+// 	{
+// 		EPD ep2 = 2.0 * 
+// 	}
+	foreach(pointMass* pm, md->pointMasses())
+	{
+		if (pm->NumDOF() == DIM2)
+			continue;
+		unsigned int id = pm->ID() * 7;
+		EPD ep2 = 2 * EPD(y(id + 3), y(id + 4), y(id + 5), y(id + 6));
+		cjaco.extraction(sr++, idx + 3, ep2.Pointer(), 4);
+		idx += pm->NumDOF();
+	}
+}
+
+void multibodyDynamics::runke_kutta_method(unsigned int cs)
+{
+	double ct = simulation::ctime;
+	double h = simulation::dt;
+	rhs.zeros();
+	VECD f1, f2, f3, f4;
+	f1.alloc(rhs.sizes());
+	f2.alloc(rhs.sizes());
+	f3.alloc(rhs.sizes());
+	f4.alloc(rhs.sizes());
+	linearSolver ls(LAPACK_COL_MAJOR, tdim, 1, tdim, tdim);
+	FULL_LEOM(ee, ct);
+	int info = ls.solve(lhs.getDataPointer(), rhs.get_ptr());
+	f1 = rhs;
+	VECD _ee;
+	_ee.alloc(ee.sizes());
+	for (unsigned int i = 0; i < mdim; i++)
+	{
+		_ee(i) = ee(i) + 0.5 * h * ee(i + mdim) + 0.125 * h * h * f1(i);
+		_ee(mdim + i) = ee(mdim + i) + 0.5 * h * f1(i);
+	}
+	FULL_LEOM(_ee, ct + 0.5 * simulation::dt);
+	info = ls.solve(lhs.getDataPointer(), rhs.get_ptr());
+	f2 = rhs;
+	for (unsigned int i = 0; i < mdim; i++)
+	{
+		_ee(i) = ee(i) + 0.5 * h * ee(i + mdim) + 0.125 * h * h * f1(i);
+		_ee(mdim + i) = ee(mdim + i) + 0.5 * h * f2(i);
+	}
+	FULL_LEOM(_ee, ct + 0.5 * simulation::dt);
+	info = ls.solve(lhs.getDataPointer(), rhs.get_ptr());
+	f3 = rhs;
+	for (unsigned int i = 0; i < mdim; i++)
+	{
+		_ee(i) = ee(i) + h * ee(i + mdim) + 0.5 * h * h * f3(i);
+		_ee(mdim + i) = ee(mdim + i) + h * f3(i);
+	}
+	FULL_LEOM(_ee, ct + simulation::dt);
+	info = ls.solve(lhs.getDataPointer(), rhs.get_ptr());
+	f4 = rhs;
+	double m = 1.0 / 6.0;
+	for (unsigned int i = 0; i < mdim; i++)
+	{
+		ee(i) = ee(i) + h * ee(i + mdim) + m * h * h * (f1(i) + f2(i) + f3(i));
+		ee(mdim + i) = ee(mdim + i) + m * h * (f1(i) + 2.0 * f2(i) + 2.0 * f3(i) + f4(i));
+	}
+//	ee = ee + (f1 + f2 * 2.0 + f3 * 2.0 + f4) * simulation::dt * (1.0 / 6.0);
+	foreach(pointMass* pm, md->pointMasses())
+	{
+		unsigned int id = pm->ID() * 7;
+		pm->setPosition(VEC3D(ee(id + 0), ee(id + 1), ee(id + 2)));
+		pm->setEP(EPD(ee(id + 3), ee(id + 4), ee(id + 5), ee(id + 6)));
+		id += mdim;
+		pm->setVelocity(VEC3D(ee(id + 0), ee(id + 1), ee(id + 2)));
+		pm->setEV(EPD(ee(id + 3), ee(id + 4), ee(id + 5), ee(id + 6)));
+	}
+}
+
 void multibodyDynamics::FULL_LEOM()
 {
 	sparseConstraintJacobian();
@@ -300,6 +518,28 @@ void multibodyDynamics::FULL_LEOM()
 		lhs(cjaco.ridx[i] + mdim, cjaco.cidx[i]) = lhs(cjaco.cidx[i], cjaco.ridx[i] + mdim) = cjaco.value[i];
 	}
 	//lhs.display();
+}
+
+
+void multibodyDynamics::FULL_LEOM(VECD& y, double t)
+{
+	sparseConstraintJacobian(y, t);
+	calcMassMatrix(y);
+	calcForceVector(y, t);
+	foreach(kinematicConstraint* kc, md->kinConstraint())
+	{
+		kc->differentialEquation(rhs.get_ptr() + mdim, y.get_ptr(), y.get_ptr() + mdim, t);
+	}
+	foreach(pointMass* pm, md->pointMasses())
+	{
+		unsigned int id = mdim + pm->ID() * 7;
+		unsigned int rid = tdim - md->pointMasses().size() + pm->ID();
+		EPD ev(y(id + 3), y(id + 4), y(id + 5), y(id + 6));
+		rhs(rid) = -2.0 * ev.dot(ev);
+	}
+	for (int i(0); i < cjaco.nnz(); i++){
+		lhs(cjaco.ridx[i] + mdim, cjaco.cidx[i]) = lhs(cjaco.cidx[i], cjaco.ridx[i] + mdim) = cjaco.value[i];
+	}
 }
 
 bool multibodyDynamics::saveResult(double ct)
@@ -366,10 +606,20 @@ void multibodyDynamics::saveFinalResult(QFile& qf)
 
 int multibodyDynamics::oneStepAnalysis(double ct, unsigned int cstep)
 {
+	int ret = 0;
 	if (ct < simulation::start_time)
 		return -1;
-	prediction(cstep);
-	return correction(cstep);
+	switch (itor_type)
+	{
+	case EXPLICIT_RUNGE_KUTTA:
+		runke_kutta_method(cstep);
+		break;
+	default:
+		prediction(cstep);
+		ret = correction(cstep);
+		break;
+	}
+	return ret;
 }
 
 void multibodyDynamics::calcReactionForce(double ct)
@@ -500,16 +750,6 @@ MAT44D multibodyDynamics::D(VEC3D& a, VEC3D& lag)
 
 void multibodyDynamics::calcConstraintSystemJacobian(double mul)
 {
-// 	for (massIterator m = md->pointMasses().begin(); m != md->pointMasses().end(); m++){
-// 		pointMass* ms = m.value();
-// 		if (ms->MassType() == pointMass::GROUND)
-// 			continue;
-// 		size_t id = (ms->ID() - 1) * 7;
-// 		MAT44D Dv;
-// 		size_t sr = tdim - mdim;
-// 		Dv = lagMul[sr - ms->ID()] * 2.0;
-// 		lhs.plus(id + 3, id + 3, POINTER(Dv), MAT4x4);
-// 	}
 	unsigned int idx = 0;
 	unsigned int  sr = tdim - mdim - md->pointMasses().size();
 	foreach(pointMass* pm, md->pointMasses())
@@ -528,120 +768,6 @@ void multibodyDynamics::calcConstraintSystemJacobian(double mul)
 	{
 		kc->derivate(lhs, mul);
 	}
-	
-// 	for (unsigned int i = 0; i < lhs.rows(); i++){
-// 		for (unsigned int j = 0; j < lhs.cols(); j++){
-// 			lhs(i, j) += mul * lhs(i, j);
-// 		}
-// 	}
-// 	int sr = 0;
-// 	int ic = 0;
-// 	int jc = 0;
-// 	pointMass* ib = NULL;
-// 	pointMass* jb = NULL;
-// 	VEC3D dij;
-// 	MAT44D Dv;
-// 	MAT34D Bv;
-// 	MATD m_lhs(lhs.rows(), lhs.cols()); m_lhs.zeros();
-// 	for (kConstIterator it = md->kinConstraint().begin(); it != md->kinConstraint().end(); it++){
-// 		kinematicConstraint *kconst = it.value();
-// 		ib = kconst->iMass();
-// 		jb = kconst->jMass();
-// 		ic = kconst->iColumn();
-// 		jc = kconst->jColumn();
-// 		switch (kconst->constType())
-// 		{
-// 		case kinematicConstraint::REVOLUTE:
-// 			if (ib->MassType() != pointMass::GROUND){
-// 				//if (!jb->ID()) jb = &ground;
-// 				Dv = -D(kconst->sp_i(), VEC3D(lagMul[sr + 0], lagMul[sr + 1], lagMul[sr + 2]));
-// 				m_lhs.plus(ic + 3, ic + 3, POINTER(Dv), MAT4x4);
-// 				Dv = lagMul[sr + 3] * D(kconst->g_i(), jb->toGlobal(kconst->h_j())) + lagMul[sr + 4] * D(kconst->f_i(), jb->toGlobal(kconst->h_j()));
-// 				m_lhs.plus(ic + 3, ic + 3, POINTER(Dv), MAT4x4);
-// 				if (jb->MassType() != pointMass::GROUND)
-// 				{
-// 					Dv = lagMul[sr + 3] * transpose(B(jb->getEP(), kconst->h_j()), B(ib->getEP(), kconst->g_i())) + lagMul[sr + 4] * transpose(B(jb->getEP(), kconst->h_j()), B(ib->getEP(), kconst->f_i()));
-// 					m_lhs.plus(jc + 3, ic + 3, POINTER(Dv), MAT4x4);
-// 				}
-// 			}
-// 			if (jb->MassType() != pointMass::GROUND){
-// 				//if (!ib->ID()) ib = &ground;
-// 				Dv = D(kconst->sp_j(), VEC3D(lagMul[sr + 0], lagMul[sr + 1], lagMul[sr + 2]));
-// 				m_lhs.plus(jc + 3, jc + 3, POINTER(Dv), MAT4x4);
-// 				Dv = lagMul[sr + 3] * D(kconst->h_j(), ib->toGlobal(kconst->g_i())) + lagMul[sr + 4] * D(kconst->h_j(), ib->toGlobal(kconst->f_i()));
-// 				m_lhs.plus(jc + 3, jc + 3, POINTER(Dv), MAT4x4);
-// 				if (ib->MassType() != pointMass::GROUND)
-// 				{
-// 					Dv = lagMul[sr + 3] * transpose(B(ib->getEP(), kconst->g_i()), B(jb->getEP(), kconst->h_j())) + lagMul[sr + 4] * transpose(B(ib->getEP(), kconst->f_i()), B(jb->getEP(), kconst->h_j()));
-// 					m_lhs.plus(ic + 3, jc + 3, POINTER(Dv), MAT4x4);
-// 				}
-// 			}
-// 			sr += 5;
-// 			break;
-// 		case kinematicConstraint::TRANSLATIONAL:
-// 			if (ib->MassType() != pointMass::GROUND)
-// 			{
-// 				//if (!jb->ID()) jb = &ground;
-// 				Dv = lagMul[sr + 0] * D(kconst->g_i(), jb->toGlobal(kconst->h_j())) + lagMul[sr + 1] * D(kconst->f_i(), jb->toGlobal(kconst->h_j())) + lagMul[sr + 4] * D(kconst->f_i(), jb->toGlobal(kconst->f_j()));
-// 				m_lhs.plus(ic + 3, ic + 3, POINTER(Dv), MAT4x4);
-// 				if (jb->MassType() != pointMass::GROUND)
-// 				{
-// 					Dv = lagMul[sr + 0] * transpose(B(ib->getEP(), kconst->g_i()), B(jb->getEP(), kconst->h_j())) + lagMul[sr + 1] * transpose(B(ib->getEP(), kconst->f_i()), B(jb->getEP(), kconst->h_j())) + lagMul[sr + 4] * transpose(B(ib->getEP(), kconst->f_i()), B(jb->getEP(), kconst->f_j()));
-// 					m_lhs.plus(ic + 3, jc + 3, POINTER(Dv), MAT4x4);
-// 				}
-// 				dij = (jb->Position() + jb->toGlobal(kconst->sp_j())) - (ib->Position() + ib->toGlobal(kconst->sp_i()));
-// 				Bv = -lagMul[sr + 2] * B(ib->getEP(), kconst->f_i()) - lagMul[sr + 3] * B(ib->getEP(), kconst->g_i());
-// 				m_lhs.plus(ic + 0, ic + 3, POINTER(Bv), MAT3X4);
-// 				m_lhs.plus(ic + 3, ic + 0, POINTER(Bv), MAT4x3);
-// 				Dv = lagMul[sr + 2] * D(kconst->f_i(), dij + ib->toGlobal(kconst->sp_i())) + lagMul[sr + 3] * D(kconst->g_i(), dij + ib->toGlobal(kconst->sp_i()));
-// 				m_lhs.plus(ic + 3, ic + 3, POINTER(Dv), MAT4x4);
-// 				if (jb->MassType() != pointMass::GROUND)
-// 				{
-// 					Bv = -Bv;
-// 					m_lhs.plus(ic + 3, jc + 0, POINTER(Bv), MAT4x3);
-// 					Dv = lagMul[sr + 2] * transpose(B(ib->getEP(), kconst->f_i()), B(jb->getEP(), kconst->sp_j())) + lagMul[sr + 3] * transpose(B(ib->getEP(), kconst->g_i()), B(jb->getEP(), kconst->sp_j()));
-// 					m_lhs.plus(ic + 3, jc + 3, POINTER(Dv), MAT4x4);
-// 				}
-// 			}
-// 			if (jb->MassType() != pointMass::GROUND)
-// 			{
-// 				//if (!ib->ID()) ib = &ground;
-// 				Dv = lagMul[sr + 0] * D(kconst->h_j(), jb->toGlobal(kconst->g_i())) + lagMul[sr + 1] * D(kconst->h_j(), jb->toGlobal(kconst->f_i())) + lagMul[sr + 4] * D(kconst->f_j(), jb->toGlobal(kconst->f_i()));
-// 				m_lhs.plus(jc + 3, jc + 3, POINTER(Dv), MAT4x4);
-// 				if (ib->MassType() != pointMass::GROUND)
-// 				{
-// 					Dv = lagMul[sr + 0] * transpose(B(jb->getEP(), kconst->h_j()), B(ib->getEP(), kconst->g_i())) + lagMul[sr + 1] * transpose(B(jb->getEP(), kconst->h_j()), B(ib->getEP(), kconst->f_i())) + lagMul[sr + 4] * transpose(B(jb->getEP(), kconst->f_j()), B(ib->getEP(), kconst->f_i()));
-// 					m_lhs.plus(jc + 3, ic + 3, POINTER(Dv), MAT4x4);
-// 				}
-// 				Dv = lagMul[sr + 2] * D(kconst->sp_j(), ib->toGlobal(kconst->f_i())) + lagMul[sr + 3] * D(kconst->sp_j(), ib->toGlobal(kconst->g_i()));
-// 				m_lhs.plus(jc + 3, jc + 3, POINTER(Dv), MAT4x4);
-// 				if (ib->MassType() != pointMass::GROUND)
-// 				{
-// 					Bv = lagMul[sr + 2] * B(ib->getEP(), kconst->f_i()) + lagMul[sr + 3] * B(ib->getEP(), kconst->g_i());
-// 					m_lhs.plus(jc + 0, ic + 3, POINTER(Bv), MAT3X4);
-// 					Dv = lagMul[sr + 2] * transpose(B(jb->getEP(), kconst->sp_j()), B(ib->getEP(), kconst->f_i())) + lagMul[sr + 3] * transpose(B(jb->getEP(), kconst->sp_j()), B(ib->getEP(), kconst->g_i()));
-// 					m_lhs.plus(jc + 3, ic + 3, POINTER(Dv), MAT4x4);
-// 				}
-// 			}
-// 			sr += 5;
-// 		}
-// 	}
-// 
-// 	for (massIterator m = md->pointMasses().begin(); m != md->pointMasses().end(); m++){
-// 		pointMass* ms = m.value();
-// 		if (ms->MassType() == pointMass::GROUND)
-// 			continue;
-// 		size_t id = (ms->ID() - 1) * 7;
-// 		MAT44D Dv;
-// 		size_t sr = tdim - mdim;
-// 		Dv = lagMul[sr - ms->ID()] * 2.0;
-// 		m_lhs.plus(id + 3, id + 3, POINTER(Dv), MAT4x4);
-// 	}
-// 	for (unsigned int i = 0; i < m_lhs.rows(); i++){
-// 		for (unsigned int j = 0; j < m_lhs.cols(); j++){
-// 			lhs(i, j) += mul * m_lhs(i, j);
-// 		}
-// 	}
 }
 
 void multibodyDynamics::constraintEquation()
@@ -742,7 +868,7 @@ int multibodyDynamics::correction(unsigned int cs)
 				pm->makeTransformationMatrix2D();
 			}
 		}
-		if (e_norm <= 1e-4)
+		if (e_norm <= 1e-5)
 		{
     			n_NR_iteration += niter;
 				//simulation::dt = 5e-6;

@@ -64,7 +64,7 @@ void springDamperModel::calcForce(VECD* rhs)
 	}
 	if (action->MassType() != pointMass::GROUND)
 	{
-		if (base->NumDOF() == DIM2){}
+		if (action->NumDOF() == DIM2){}
 		else
 		{
 			int jrc = action->ID() * 7;
@@ -72,6 +72,90 @@ void springDamperModel::calcForce(VECD* rhs)
 		}
 	}
 	//rhs->plus(irc, POINTER3)
+}
+
+void springDamperModel::calcForce(double* rhs, double* q, double *dq, double t)
+{
+	VEC3D Qi;
+	VEC4D QRi;
+	VEC3D Qj;
+	VEC4D QRj;
+	VEC3D ri, rj, vi, vj;
+	EPD epi, epj, evi, evj;
+	if (base->MassType() == pointMass::GROUND)
+	{
+		ri = base->Position();
+		epi = base->getEP();// (q[i + 3], q[i + 4], q[i + 5], q[i + 6]);
+		vi = base->getVelocity();// (dq[i + 0], dq[i + 1], dq[i + 2]);
+		evi = base->getEV();// (dq[i + 3], dq[i + 4], dq[i + 5], dq[i + 6]);
+	}
+	else
+	{
+		unsigned int i = base->ID() * 7;
+		ri = VEC3D(q[i + 0], q[i + 1], q[i + 2]);
+		epi = EPD(q[i + 3], q[i + 4], q[i + 5], q[i + 6]);
+		vi = VEC3D(dq[i + 0], dq[i + 1], dq[i + 2]);
+		evi = EPD(dq[i + 3], dq[i + 4], dq[i + 5], dq[i + 6]);
+	}
+	if (action->MassType() == pointMass::GROUND)
+	{
+		rj = action->Position();
+		epj = action->getEP();// (q[i + 3], q[i + 4], q[i + 5], q[i + 6]);
+		vj = action->getVelocity();// (dq[i + 0], dq[i + 1], dq[i + 2]);
+		evj = action->getEV();// (dq[i + 3], dq[i + 4], dq[i + 5], dq[i + 6]);
+	}
+	else
+	{
+		unsigned int j = action->ID() * 7;
+		rj = VEC3D(q[j + 0], q[j + 1], q[j + 2]);
+		epj = EPD(q[j + 3], q[j + 4], q[j + 5], q[j + 6]);
+		vj = VEC3D(dq[j + 0], dq[j + 1], dq[j + 2]);
+		evj = EPD(dq[j + 3], dq[j + 4], dq[j + 5], dq[j + 6]);
+	}
+	L = rj + epj.toGlobal(spj) - ri - epi.toGlobal(spi);// action->Position() + action->toGlobal(spj) - base->Position() - base->toGlobal(spi);
+	l = L.length();
+	VEC3D dL = vj + B(evj, spj) * epj - vi - B(evi, spi) * epi;
+	dl = L.dot(dL) / l;
+	f = k * (l - init_l) + c * dl;
+	Qi = (f / l) * L;
+	Qj = -Qi;
+	QRi = (f / l) * transpose(B(epi, spi), L);
+	QRj = -(f / l) * transpose(B(epj, spj), L);
+
+	if (base->MassType() != pointMass::GROUND)
+	{
+		if (base->NumDOF() == DIM2){}
+		else
+		{
+			int irc = base->ID() * 7;
+			rhs[irc + 0] = Qi.x;
+			rhs[irc + 1] = Qi.y;
+			rhs[irc + 2] = Qi.z;
+
+			rhs[irc + 3] = QRi.x;
+			rhs[irc + 4] = QRi.y;
+			rhs[irc + 5] = QRi.z;
+			rhs[irc + 6] = QRi.w;
+			//rhs->plus(jrc, POINTER3(Qj), POINTER(QRj), 3, 4);
+		}
+	}
+	if (action->MassType() != pointMass::GROUND)
+	{
+		if (action->NumDOF() == DIM2){}
+		else
+		{
+			int jrc = action->ID() * 7;
+			rhs[jrc + 0] = Qj.x;
+			rhs[jrc + 1] = Qj.y;
+			rhs[jrc + 2] = Qj.z;
+
+			rhs[jrc + 3] = QRj.x;
+			rhs[jrc + 4] = QRj.y;
+			rhs[jrc + 5] = QRj.z;
+			rhs[jrc + 6] = QRj.w;
+			//rhs->plus(jrc, POINTER3(Qj), POINTER(QRj), 3, 4);
+		}
+	}
 }
 
 void springDamperModel::derivate(MATD& lhs, double mul)

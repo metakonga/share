@@ -17,9 +17,11 @@ public:
 	virtual ~springDamperModel();
 
 	virtual void calcForce(VECD* rhs);
+	virtual void calcForce(double* rhs, double* q, double *qd, double t);
 	virtual void derivate(MATD& lhs, double mul);
 	virtual void derivate_velocity(MATD& lhs, double mul);
 	virtual void saveData(QTextStream& qts);
+//	virtual void calcForce(double* rhs, double* q, double *qd, double t);
 
 	void saveResult(double t);
 

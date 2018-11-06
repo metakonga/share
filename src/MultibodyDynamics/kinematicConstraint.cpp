@@ -201,3 +201,21 @@ void kinematicConstraint::setZeroLagrangeMultiplier()
 {
 	memset(lm, 0, sizeof(double) * nconst);
 }
+
+VEC3D kinematicConstraint::spherical_differential(EPD& dpi, EPD& dpj)
+{
+	return B(dpi, spi)*dpi - B(dpj, spj)*dpj;
+}
+
+double kinematicConstraint::dot_1_differential(VEC3D& ai, VEC3D& aj, EPD& pi, EPD& pj, EPD& dpi, EPD& dpj)
+{
+	return -(pj.toGlobal(aj).dot(B(dpi, ai) * dpi) - pi.toGlobal(ai).dot(B(dpj, aj) * dpj) + 2.0 * dpi.dot(transpose(B(pi, ai),B(pj, aj) * dpj)));
+}
+
+double kinematicConstraint::dot_2_differential(VEC3D& ai, VEC3D& dri, VEC3D& drj, VEC3D& dij, EPD& pi, EPD& pj, EPD& dpi, EPD& dpj)
+{
+	VEC3D gai = pi.toGlobal(ai);
+	return dri.dot(B(pi, ai) * dpi) - dij.dot(B(dpi, ai) * dpi) - dpi.dot(transpose(B(pi, ai), (-dri - B(pi, spi) * dpi + drj + B(pj, spj) * dpj)))
+		+ gai.dot(B(dpi, spi) * dpi) + dpi.dot(transpose(B(pi, spi), B(pi, ai) * dpi)) - drj.dot(B(pi, ai) * dpi) - gai.dot(B(dpj, spj) * dpj)
+		- dpj.dot(transpose(B(pj, spj), B(pi, ai) * dpi));
+}

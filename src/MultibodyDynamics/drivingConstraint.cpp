@@ -97,7 +97,7 @@ void drivingConstraint::constraintEquation(double mul, double* rhs)
 	}
 }
 
-void drivingConstraint::constraintJacobian(SMATD& cjaco)
+void drivingConstraint::constraintJacobian(SMATD& cjaco, double ct)
 {
 	if (type == DRIVING_TRANSLATION)
 	{
@@ -135,10 +135,10 @@ void drivingConstraint::constraintJacobian(SMATD& cjaco)
 		double prad = 0.0;
 // 		qDebug() << "start_time : " << start_time;
 // 		qDebug() << "simulation_time : " << simulation::ctime;
-		if (start_time > simulation::ctime + plus_time)
-			prad = init_v + 0.0 * simulation::ctime;
+		if (start_time > ct + plus_time)
+			prad = init_v + 0.0 * ct;
 		else
-			prad = init_v + cons_v * (simulation::ctime - start_time + plus_time);
+			prad = init_v + cons_v * (ct - start_time + plus_time);
 		if (prad > M_PI)
 			stheta = stheta;
 	//	qDebug() << "prad : " << prad;
@@ -152,6 +152,44 @@ void drivingConstraint::constraintJacobian(SMATD& cjaco)
 			cjaco.extraction(srow, jc, POINTER(zv), POINTER(D2), VEC3_4);
 	}
 	
+}
+
+void drivingConstraint::differentialEquation(double* q, double *dq, double *rhs)
+{
+	unsigned int i = kconst->iMass()->ID() * 7;
+	unsigned int j = kconst->jMass()->ID() * 7;
+	EPD pi(q[i + 3], q[i + 4], q[i + 5], q[i + 6]);
+	EPD pj(q[j + 3], q[j + 4], q[j + 5], q[j + 6]);
+	EPD dpi(dq[i + 3], dq[i + 4], dq[i + 5], dq[i + 6]);
+	EPD dpj(dq[j + 3], dq[j + 4], dq[j + 5], dq[j + 6]);
+	if (type == DRIVING_TRANSLATION)
+	{
+		VEC3D ri(q[i + 0], q[i + 1], q[i + 2]);
+		VEC3D rj(q[j + 0], q[j + 1], q[j + 2]);
+		VEC3D dri(dq[i + 0], dq[i + 1], dq[i + 2]);
+		VEC3D drj(dq[j + 0], dq[j + 1], dq[j + 2]);
+		VEC3D dij = rj + pj.toGlobal(kconst->sp_j()) - ri - pi.toGlobal(kconst->sp_i());
+		VEC3D spi = kconst->sp_i();
+		VEC3D spj = kconst->sp_j();
+		VEC3D _ai = kconst->h_i();
+		VEC3D ai = pi.toGlobal(_ai);
+		double v = dri.dot(B(pi, _ai) * dpi) - dij.dot(B(dpi, _ai) * dpi) + ai.dot(B(dpi, spi) * dpi) + dpi.dot(transpose(B(pi, spi), B(pi, _ai) * dpi))
+			- drj.dot(B(pi, _ai) * dpi) - ai.dot(B(dpj, spj) * dpj) - dpj.dot(transpose(B(pj, spj), B(pi, _ai) * dpi))
+			- dpi.dot(transpose(B(pi, _ai), drj + B(pj, spj) * dpj - dri - B(pi, _ai) * dpi));
+		rhs[srow] = v;
+	}
+	else if (type = DRIVING_ROTATION)
+	{
+		VEC3D _gi = kconst->g_i();
+		VEC3D _fi = kconst->f_i();
+		VEC3D _fj = kconst->f_j();
+		VEC3D fi = pi.toGlobal(kconst->f_i());
+		VEC3D fj = pj.toGlobal(kconst->f_j());
+		VEC3D gi = pi.toGlobal(kconst->g_i());
+		double v = -cos(theta) * (fj.dot(B(dpi, _gi) * dpi) + gi.dot(B(dpj, _fj) * dpj) + 2.0 * dpi.dot(transpose(B(pi, _gi), B(pj, _fj) * dpj)))
+			+ sin(theta) * (fj.dot(B(dpi, _fi) * dpi) + fi.dot(B(dpj, _fj) * dpj) + 2.0 * dpi.dot(transpose(B(pi, _fi), B(pj, _fj) * dpj)));
+		rhs[srow] = v;
+	}
 }
 
 void drivingConstraint::saveData(QTextStream& qts)

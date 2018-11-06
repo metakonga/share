@@ -63,3 +63,17 @@ void sphericalConstraint::derivate(MATD& lhs, double mul)
 	lhs.plus(icol + 3, icol + 3, POINTER(Di), MAT4x4, mul);
 	lhs.plus(jcol + 3, jcol + 3, POINTER(Dj), MAT4x4, mul);
 }
+
+void sphericalConstraint::differentialEquation(double *rhs, double* q, double *dq, double t)
+{
+	bool ig = ib->MassType() == pointMass::GROUND;
+	bool jg = jb->MassType() == pointMass::GROUND;
+	int i = ig ? -1 : ib->ID() * 7;
+	int j = jg ? -1 : jb->ID() * 7;
+	EPD dpi = ig ? ib->getEV() : EPD(dq[i + 3], dq[i + 4], dq[i + 5], dq[i + 6]);
+	EPD dpj = jg ? jb->getEV() : EPD(dq[j + 3], dq[j + 4], dq[j + 5], dq[j + 6]);
+	VEC3D v3 = spherical_differential(dpi, dpj);
+	rhs[srow + 0] = v3.x;
+	rhs[srow + 1] = v3.y;
+	rhs[srow + 2] = v3.z;
+}

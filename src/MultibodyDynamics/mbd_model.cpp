@@ -333,7 +333,7 @@ pointMass* mbd_model::createPointMass(
 	rb->setEP(ep);
 	rb->setViewMarker(GLWidget::GLObject()->makeMarker(_name, p));
 	masses[_name] = rb;
-	modelManager::MM()->GeometryObject()->addMarkerObject(rb);
+	//modelManager::MM()->GeometryObject()->addMarkerObject(rb);
 	database::DB()->addChild(database::RIGID_BODY_ROOT, _name);
 	
 	QString log;

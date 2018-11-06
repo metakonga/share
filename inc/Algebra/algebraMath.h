@@ -8,6 +8,7 @@
 #define POINTER(a) &a(0)
 #define POINTER3(a) &(a.x)
 #define POINTER4(a) &(a.x)
+#define POINTEREP(a) &(a.e0)
 
 inline float frand() { return rand() / (float)RAND_MAX; }
 inline double drand() { return rand() / (double)RAND_MAX; }
@@ -42,6 +43,12 @@ MAT44D transpose(const MAT34D& m4x3, MAT34D& m3x4)
 		m4x3.a03 * m3x4.a00 + m4x3.a13 * m3x4.a10 + m4x3.a23 * m3x4.a20, m4x3.a03 * m3x4.a01 + m4x3.a13 * m3x4.a11 + m4x3.a23 * m3x4.a21, m4x3.a03 * m3x4.a02 + m4x3.a13 * m3x4.a12 + m4x3.a23 * m3x4.a22, m4x3.a03 * m3x4.a03 + m4x3.a13 * m3x4.a13 + m4x3.a23 * m3x4.a23
 		);
 }
+
+// inline
+// double transpose(VEC4D& a, VEC4D& b)
+// {
+// 	return q.x * q.x
+// }
 
 inline
 MAT43D transpose(MAT34D& m4x3, MAT33D& m3x3)

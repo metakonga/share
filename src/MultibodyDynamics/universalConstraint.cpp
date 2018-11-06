@@ -67,3 +67,21 @@ void universalConstraint::derivate(MATD& lhs, double mul)
 {
 
 }
+
+void universalConstraint::differentialEquation(double *rhs, double* q, double *dq, double t)
+{
+	bool ig = ib->MassType() == pointMass::GROUND;
+	bool jg = jb->MassType() == pointMass::GROUND;
+	int i = ig ? -1 : ib->ID() * 7;
+	int j = jg ? -1 : jb->ID() * 7;
+	EPD pi = ig ? ib->getEP() : EPD(q[i + 3], q[i + 4], q[i + 5], q[i + 6]);
+	EPD pj = jg ? jb->getEP() : EPD(q[j + 3], q[j + 4], q[j + 5], q[j + 6]);
+	EPD dpi = ig ? ib->getEV() : EPD(dq[i + 3], dq[i + 4], dq[i + 5], dq[i + 6]);
+	EPD dpj = jg ? jb->getEV() : EPD(dq[j + 3], dq[j + 4], dq[j + 5], dq[j + 6]);
+	VEC3D gamma = spherical_differential(dpi, dpj);
+	rhs[srow + 0] = gamma.x;
+	rhs[srow + 1] = gamma.y;
+	rhs[srow + 2] = gamma.z;
+	double d1_0 = dot_1_differential(hi, hj, pi, pj, dpi, dpj);
+	rhs[srow + 3] = d1_0;
+}
