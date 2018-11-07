@@ -320,7 +320,7 @@ void mbd_model::insertPointMass(pointMass* pm)
 	pm->setViewMarker(GLWidget::GLObject()->makeMarker(pm->Name(), p));
 	QString log;
 	QTextStream qts(&log);
-	qts << "ELEMENT " << "poly_mass" << endl
+	qts << "ELEMENT " << "point_mass" << endl
 		<< "NAME " << pm->Name() << endl
 		<< "MASS " << pm->Mass() << endl
 		<< "MATERIAL_TYPE " << pm->MaterialType() << endl
@@ -348,7 +348,7 @@ pointMass* mbd_model::createPointMass(
 	
 	QString log;
 	QTextStream qts(&log);
-	qts << "ELEMENT " << "rigid" << endl
+	qts << "ELEMENT " << "point_mass" << endl
 		<< "NAME " << _name << endl
 		<< "MASS " << mass << endl
 		<< "MATERIAL_TYPE " << rb->MaterialType() << endl

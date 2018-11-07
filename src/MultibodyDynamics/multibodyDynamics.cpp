@@ -451,7 +451,7 @@ int multibodyDynamics::runke_kutta_method(unsigned int cs)
 {
 	double ct = simulation::ctime;
 	double h = simulation::dt;
-	solveInitialValue(ee, ct);
+	//solveInitialValue(ee, ct);
 	rhs.zeros();
 	VECD f1, f2, f3, f4;
 	f1.alloc(rhs.sizes());
