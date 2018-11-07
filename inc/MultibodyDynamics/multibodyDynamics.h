@@ -85,7 +85,7 @@ private:
 	VEC4D calcMoment(EPD& ep, VEC3D& m);
 	void sparseConstraintJacobian();
 	void sparseConstraintJacobian(VECD& y, double t);
-	void runke_kutta_method(unsigned int cs);
+	int runke_kutta_method(unsigned int cs);
 
 	void calcMassSystemJacobian(double mul);
 	void calcForceSystemJacobian(double gamma, double beta);

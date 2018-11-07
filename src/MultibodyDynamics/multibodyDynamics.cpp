@@ -450,7 +450,7 @@ void multibodyDynamics::sparseConstraintJacobian(VECD& y, double t)
 	}
 }
 
-void multibodyDynamics::runke_kutta_method(unsigned int cs)
+int multibodyDynamics::runke_kutta_method(unsigned int cs)
 {
 	double ct = simulation::ctime;
 	double h = simulation::dt;
@@ -506,6 +506,7 @@ void multibodyDynamics::runke_kutta_method(unsigned int cs)
 		pm->setVelocity(VEC3D(ee(id + 0), ee(id + 1), ee(id + 2)));
 		pm->setEV(EPD(ee(id + 3), ee(id + 4), ee(id + 5), ee(id + 6)));
 	}
+	return 1;
 }
 
 void multibodyDynamics::FULL_LEOM()
@@ -612,7 +613,7 @@ int multibodyDynamics::oneStepAnalysis(double ct, unsigned int cstep)
 	switch (itor_type)
 	{
 	case EXPLICIT_RUNGE_KUTTA:
-		runke_kutta_method(cstep);
+		ret = runke_kutta_method(cstep);
 		break;
 	default:
 		prediction(cstep);
