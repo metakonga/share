@@ -29,7 +29,7 @@ public:
 
 	bool saveResult(double ct);
 	void saveFinalResult(QFile& qf);
-
+	void setIntegratorType(mbd_integrator_type itype) { itor_type = itype; }
 	unsigned int getOutCount() { return outCount; }
 	unsigned int N_NR_Iteration();
 
@@ -94,7 +94,7 @@ private:
 	MAT44D D(VEC3D& a, VEC3D& lag);
 	void constraintEquation();
 
-	integrator_type itor_type;
+	mbd_integrator_type itor_type;
 	QFile qf_out;
 	unsigned int outCount;
 	mbd_model* md;

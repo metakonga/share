@@ -13,7 +13,7 @@ multibodyDynamics::multibodyDynamics()
 	: md(NULL)
 	, mdim(0)
 	, outCount(0)
-	, itor_type(INTEGRATOR)
+	, itor_type(MBD_INTEGRATOR)
 	//, permutation(NULL)
 {
 
@@ -23,7 +23,7 @@ multibodyDynamics::multibodyDynamics(mbd_model *_md)
 	: md(_md)
 	, mdim(0)
 	, outCount(0)
-	, itor_type(EXPLICIT_RUNGE_KUTTA)
+	, itor_type(MBD_INTEGRATOR)
 	//, permutation(NULL)
 {
 	//ground.setID(-1);
