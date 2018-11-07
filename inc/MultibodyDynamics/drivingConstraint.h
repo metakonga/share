@@ -27,7 +27,9 @@ public:
 	void updateInitialCondition();
 	//double constraintEquation(double ct);
 	void constraintEquation(double m, double* rhs);
+	void constraintEquation(double *ce, double* q, double* dq, double ct);
 	void constraintJacobian(SMATD& cjaco, double ct);
+	void constraintJacobian(SMATD& cjaco, double *q, double *dq, double ct);
 	void differentialEquation(double* q, double *dq, double *rhs);
 	//virtual void constraintEquation2D(double m) {};
 

@@ -73,6 +73,7 @@ private:
 	//pointMass ground;
 
 	void calculateRhs();
+	void solveInitialValue(VECD& y, double t);
 	void FULL_LEOM();
 	void FULL_LEOM(VECD& y, double t);
 	bool initialize_implicit_hht();
@@ -93,6 +94,7 @@ private:
 
 	MAT44D D(VEC3D& a, VEC3D& lag);
 	void constraintEquation();
+	void constraintEquation(VECD& y, double *ce, double t);
 
 	mbd_integrator_type itor_type;
 	QFile qf_out;

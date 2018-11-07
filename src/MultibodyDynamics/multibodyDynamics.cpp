@@ -2,6 +2,7 @@
 #include "kinematicConstraint.h"
 #include "forceElement.h"
 #include "linearSolver.hpp"
+#include "numeric_utility.h"
 #include "errors.h"
 #include <QDebug>
 #include <QTime>
@@ -426,19 +427,15 @@ void multibodyDynamics::sparseConstraintJacobian(VECD& y, double t)
 	foreach(kinematicConstraint* kc, md->kinConstraint())
 	{
 		//qDebug() << "kin_name : " << kc->name();
-		kc->constraintJacobian(cjaco);
+		kc->constraintJacobian(cjaco, y.get_ptr(), y.get_ptr() + mdim);
 		sr += kc->numConst();
 	}
 	foreach(drivingConstraint* dc, md->drivingConstraints())
 	{
-		dc->constraintJacobian(cjaco, t);
+		dc->constraintJacobian(cjaco, y.get_ptr(), y.get_ptr() + mdim, t);
 		sr++;
 	}
 	unsigned int idx = 0;
-// 	for (unsigned int i = 0; i < md->pointMasses().size(); i++)
-// 	{
-// 		EPD ep2 = 2.0 * 
-// 	}
 	foreach(pointMass* pm, md->pointMasses())
 	{
 		if (pm->NumDOF() == DIM2)
@@ -454,6 +451,7 @@ int multibodyDynamics::runke_kutta_method(unsigned int cs)
 {
 	double ct = simulation::ctime;
 	double h = simulation::dt;
+	solveInitialValue(ee, ct);
 	rhs.zeros();
 	VECD f1, f2, f3, f4;
 	f1.alloc(rhs.sizes());
@@ -509,6 +507,67 @@ int multibodyDynamics::runke_kutta_method(unsigned int cs)
 	return 1;
 }
 
+void multibodyDynamics::solveInitialValue(VECD& y, double t)
+{	
+	unsigned int nconst = tdim - mdim;
+	MATD ja(nconst, mdim);
+	VECD ce(nconst);
+	VECUI pv(mdim);
+	pv.initSequence();
+
+	// Construct Jacobian Matrix
+	sparseConstraintJacobian(y, t);
+	for (int i(0); i < cjaco.nnz(); i++){
+		ja(cjaco.ridx[i], cjaco.cidx[i]) = cjaco.value[i];
+	}
+	numeric::utility::coordinatePartioning(ja, pv);
+	double tolerance = 1;
+	linearSolver ls(LAPACK_COL_MAJOR, nconst, 1, nconst, nconst);
+	//int info = ls.solve(lhs.getDataPointer(), rhs.get_ptr());
+	VECUI rid(mdim);
+	for (unsigned int i = 0; i < mdim; i++)
+	{
+		rid(pv(i)) = i;
+	}
+	while (tolerance >= 1e-5)
+	{
+		ja.zeros();
+		sparseConstraintJacobian(y, t);
+		for (int i(0); i < cjaco.nnz(); i++){
+			ja(cjaco.ridx[i], rid(cjaco.cidx[i])) = cjaco.value[i];
+		}
+		constraintEquation(y, ce.get_ptr(), t);
+		ce *= -1.0;
+		int info = ls.solve(ja.getDataPointer(), ce.get_ptr());
+		for (unsigned int i = 0; i < nconst; i++)
+		{
+			y(i) += ce(rid(i));
+		}
+		tolerance = ce.norm();
+	}
+// 	ce.zeros();
+// 	sparseConstraintJacobian(y, t);
+// 	for (int i(0); i < cjaco.nnz(); i++){
+// 		ja(cjaco.ridx[i], rid(cjaco.cidx[i])) = cjaco.value[i];
+// 	}
+// 	unsigned int nv = mdim - nconst;
+// 	for (unsigned int r = 0; r < nconst; r++)
+// 	{
+// 		double sum = 0.0;
+// 		for (unsigned int c = 0; c < nv; c++)
+// 		{
+// 			sum -= ja(r, rid(nconst + c)) * y(mdim + rid(nconst + c));
+// 		}
+// 		ce(r) = sum;
+// 	}
+// 	int info = ls.solve(ja.getDataPointer(), ce.get_ptr());
+// 	for (unsigned int i = 0; i < nconst; i++)
+// 	{
+// 		y(mdim + i) = ce(rid(i));
+// 	}
+	// Construct Constraint Equation
+}
+
 void multibodyDynamics::FULL_LEOM()
 {
 	sparseConstraintJacobian();
@@ -530,6 +589,10 @@ void multibodyDynamics::FULL_LEOM(VECD& y, double t)
 	foreach(kinematicConstraint* kc, md->kinConstraint())
 	{
 		kc->differentialEquation(rhs.get_ptr() + mdim, y.get_ptr(), y.get_ptr() + mdim, t);
+	}
+	foreach(drivingConstraint* dc, md->drivingConstraints())
+	{
+		dc->differentialEquation(y.get_ptr(), y.get_ptr() + mdim, rhs.get_ptr() + mdim);
 	}
 	foreach(pointMass* pm, md->pointMasses())
 	{
@@ -789,6 +852,29 @@ void multibodyDynamics::constraintEquation()
 	{
 		double d = pm->getEP().dot();
 		rhs[sr++] = divbeta * (d - 1.0);
+	}
+}
+
+void multibodyDynamics::constraintEquation(VECD& y, double *ce, double t)
+{
+	/*double* rhs = ee.get_ptr() + mdim;*/
+	unsigned int sr = 0;
+	foreach(kinematicConstraint *kc, md->kinConstraint())
+	{
+		kc->constraintEquation(ce, y.get_ptr(), y.get_ptr() + mdim);
+		sr += kc->numConst();
+	}
+	foreach(drivingConstraint* dc, md->drivingConstraints())
+	{
+		dc->constraintEquation(ce, y.get_ptr(), y.get_ptr() + mdim, t);
+		sr++;
+	}
+	foreach(pointMass* pm, md->pointMasses())
+	{
+		unsigned int i = pm->ID() * 7;
+		EPD ep(y(i + 3), y(i + 4), y(i + 5), y(i + 6));
+		double d = ep.dot();
+		ce[sr++] = d - 1.0;
 	}
 }
 

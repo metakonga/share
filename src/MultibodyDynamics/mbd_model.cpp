@@ -221,6 +221,16 @@ axialRotationForce* mbd_model::createAxialRotationForce(
 	axialRotationForce* arf = new axialRotationForce(_name, this, loc, u, i, j);
 	arf->setForceValue(v);
 	forces[_name] = arf;
+	QString log;
+	QTextStream qts(&log);
+	qts << "ELEMENT " << "arforce" << endl
+		<< "NAME " << _name << endl
+		<< "BASE " << i->Name() << endl
+		<< "ACTION " << j->Name() << endl
+		<< "LOCATION " << loc.x << " " << loc.y << " " << loc.z << endl
+		<< "AXIS_UNIT " << u.x << " " << u.y << " " << u.z << endl
+		<< "FORCE_VALUE " << v << endl;
+	other_logs[_name] = log;
 	return arf;
 }
 
@@ -462,6 +472,19 @@ void mbd_model::Open(QTextStream& qts)
 				>> ch >> k >> ch >> c;
 			createSpringDamperElement(_name, masses[ib], bLoc, masses[jb], aLoc, k, c);
 		}
+		else if (ch == "arforce")
+		{
+			QString _name, ib, jb;
+			double fr;
+			VEC3D loc, dir;
+			qts >> ch >> _name
+				>> ch >> ib
+				>> ch >> jb
+				>> ch >> loc.x >> loc.y >> loc.z
+				>> ch >> dir.x >> dir.y >> dir.z
+				>> ch >> fr;
+			createAxialRotationForce(_name, masses[ib], masses[jb], loc, dir, fr);
+		}
 	}
 }
 
@@ -469,19 +492,27 @@ void mbd_model::Save(QTextStream& qts)
 {
 	qts << endl
 		<< "MULTIBODY_MODEL_DATA " << mbd_model_name << endl;
-	foreach(pointMass* pm, masses)
-		pm->saveData(qts);
-
-	foreach(kinematicConstraint* kc, consts)
-		kc->saveData(qts);
-// 	foreach(cableConstraint* cc, cables)
-// 	{
-// 		cc->saveCableConstraintData(qts);
-// 	}
-	foreach(forceElement* fe, forces)
-		fe->saveData(qts);
-	foreach(drivingConstraint* dc, drivings)
-		dc->saveData(qts);
+	foreach(QString log, body_logs)
+	{
+		qts << log;
+	}
+	foreach(QString log, other_logs)
+	{
+		qts << log;
+	}
+// 	foreach(pointMass* pm, masses)
+// 		pm->saveData(qts);
+// 
+// 	foreach(kinematicConstraint* kc, consts)
+// 		kc->saveData(qts);
+// // 	foreach(cableConstraint* cc, cables)
+// // 	{
+// // 		cc->saveCableConstraintData(qts);
+// // 	}
+// 	foreach(forceElement* fe, forces)
+// 		fe->saveData(qts);
+// 	foreach(drivingConstraint* dc, drivings)
+// 		dc->saveData(qts);
 // 	foreach(QString log, body_logs)
 // 	{
 // 		qts << log;

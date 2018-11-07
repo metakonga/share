@@ -39,7 +39,9 @@ public:
 
 	virtual void calculation_reaction_force(double ct) {};
 	virtual void constraintEquation(double m, double* rhs);
+	virtual void constraintEquation(double *ce, double* q, double* dq){};
 	virtual void constraintJacobian(SMATD& cjaco);
+	virtual void constraintJacobian(SMATD& cjaco, double* q, double* dq);
 	virtual void derivate(MATD& lhs, double mul);
 	virtual void differentialEquation(double *rhs, double* q, double *dq, double t){};
 

@@ -302,6 +302,11 @@ void gearConstraint::constraintJacobian(SMATD& cjaco)
 	cjaco(srow, jcol) = 1.0;
 }
 
+void gearConstraint::constraintJacobian(SMATD& cjaco, double* q, double* dq)
+{
+
+}
+
 void gearConstraint::derivate(MATD& lhs, double mul)
 {
 

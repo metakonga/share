@@ -37,6 +37,24 @@ void universalConstraint::constraintEquation(double m, double* rhs)
 	}
 }
 
+void universalConstraint::constraintEquation(double *rhs, double* q, double* dq)
+{
+	int i = ib->ID() * 7;
+	int j = jb->ID() * 7;
+	VEC3D ri = i < 0 ? ib->Position() : VEC3D(q[i + 0], q[i + 1], q[i + 2]);
+	VEC3D rj = j < 0 ? jb->Position() : VEC3D(q[j + 0], q[j + 1], q[j + 2]);
+	EPD epi = i < 0 ? ib->getEP() : EPD(q[i + 3], q[i + 4], q[i + 5], q[i + 6]);
+	EPD epj = j < 0 ? jb->getEP() : EPD(q[j + 3], q[j + 4], q[j + 5], q[j + 6]);
+	VEC3D v3 = (rj + epj.toGlobal(spj)) - (ri + epi.toGlobal(spi));
+	//VEC3D v3 = jb->Position() + jb->toGlobal(spj) - ib->Position() - ib->toGlobal(spi);
+	rhs[srow + 0] = v3.x;
+	rhs[srow + 1] = v3.y;
+	rhs[srow + 2] = v3.z;
+	v3 = epj.toGlobal(hj);
+	//v = ib->toGlobal(kconst->g_i());
+	rhs[srow + 3] = v3.dot(epi.toGlobal(hi));
+}
+
 void universalConstraint::constraintJacobian(SMATD& cjaco)
 {
 	if (ib->NumDOF() == DIM2)
@@ -60,6 +78,31 @@ void universalConstraint::constraintJacobian(SMATD& cjaco)
 			cjaco.extraction(srow + 0, jcol + 3, POINTER(B(ep, spj)), MAT3X4);
 			cjaco.extraction(srow + 3, jcol + 3, POINTER(transpose(ib->toGlobal(hi), B(ep, hj))), VEC4);
 		}
+	}
+}
+
+void universalConstraint::constraintJacobian(SMATD& cjaco, double* q, double* dq)
+{
+	int i = ib->ID() * 7;
+	int j = jb->ID() * 7;
+	EPD epi = i < 0 ? ib->getEP() : EPD(q[i + 3], q[i + 4], q[i + 5], q[i + 6]);
+	EPD epj = j < 0 ? jb->getEP() : EPD(q[j + 3], q[j + 4], q[j + 5], q[j + 6]);
+	if (ib->MassType() != pointMass::GROUND)
+	{
+		//unsigned int id = ib->ID() * 7;
+		for (unsigned i(0); i < 3; i++) cjaco(srow + i, icol + i) = -1;
+		//EPD ep(q[id + 3], q[id + 4], q[id + 5], q[id + 6]); //EPD ep = ib->getEP();// m->getParameterv(ib);
+		cjaco.extraction(srow + 0, icol + 3, POINTER(B(epi, -spi)), MAT3X4);
+		cjaco.extraction(srow + 3, icol + 3, POINTER(transpose(epj.toGlobal(hj), B(epi, hi))), VEC4);
+	}
+	if (jb->MassType() != pointMass::GROUND)
+	{
+		//if (!ib->ID()) ib = &ground;
+		//unsigned int id = jb->ID() * 7;
+		for (unsigned i(0); i < 3; i++) cjaco(srow + i, jcol + i) = 1;
+		//EPD ep(q[id + 3], q[id + 4], q[id + 5], q[id + 6]); //EPD ep = jb->getEP();
+		cjaco.extraction(srow + 0, jcol + 3, POINTER(B(epj, spj)), MAT3X4);
+		cjaco.extraction(srow + 3, jcol + 3, POINTER(transpose(epi.toGlobal(hi), B(epj, hj))), VEC4);
 	}
 }
 

@@ -215,6 +215,13 @@ namespace algebra
 				storage[s++] += *(ptr++);
 		}
 
+		void minus(unsigned int s, base_type* ptr, int ndata = 0)
+		{
+			unsigned int limit = s + ndata;
+			while (s < limit)
+				storage[s++] -= *(ptr++);
+		}
+
 		base_type norm()
 		{
 			base_type sum=0;
@@ -239,6 +246,13 @@ namespace algebra
 				out << storage[i] << std::endl;
 			}
 			std::cout << name << " is wrote." << std::endl;
+		}
+
+		void swap(unsigned int i, unsigned int j)
+		{
+			base_type v = storage[i];
+			storage[i] = storage[j];
+			storage[j] = v;
 		}
 
 	private:

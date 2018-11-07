@@ -28,6 +28,7 @@ namespace algebra
 		matrix(size_t r, size_t c) : nsize(r*c), nrow(r), ncol(c), elements(0)
 		{
 			elements = new element_t[nsize];
+			zeros();
 		}
 		matrix(size_t r, size_t c, element_t init) : nsize(r*c), nrow(r), ncol(c), elements(0)
 		{
@@ -117,6 +118,16 @@ namespace algebra
 // 						}
 // 						fs << endl;
 			//cout.close();
+		}
+
+		void swap_column(unsigned int i, unsigned int j)
+		{
+			for (unsigned int k = 0; k < nrow; k++)
+			{
+				element_t v = elements[i * nrow + k];
+				elements[i * nrow + k] = elements[j * nrow + k];
+				elements[j * nrow + k] = v;
+			}
 		}
 
 		void plus(int sr, int sc, element_t* ptr, int type, double m = 1.0)

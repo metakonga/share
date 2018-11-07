@@ -63,6 +63,25 @@ void translationalConstraint::constraintEquation(double m, double* rhs)
 	}
 }
 
+void translationalConstraint::constraintEquation(double *rhs, double* q, double* dq)
+{
+	int i = ib->ID() * 7;
+	int j = jb->ID() * 7;
+	VEC3D ri = i < 0 ? ib->Position() : VEC3D(q[i + 0], q[i + 1], q[i + 2]);
+	VEC3D rj = j < 0 ? jb->Position() : VEC3D(q[j + 0], q[j + 1], q[j + 2]);
+	EPD epi = i < 0 ? ib->getEP() : EPD(q[i + 3], q[i + 4], q[i + 5], q[i + 6]);
+	EPD epj = j < 0 ? jb->getEP() : EPD(q[j + 3], q[j + 4], q[j + 5], q[j + 6]);
+	VEC3D v3 = epj.toGlobal(hj);
+	VEC3D v3g = epi.toGlobal(gi);
+	VEC3D v3f = epi.toGlobal(fi);
+	rhs[srow + 0] = v3.dot(v3f);
+	rhs[srow + 1] = v3.dot(v3g);
+	v3 = rj + epj.toGlobal(spj) - ri;// jb->Position() + jb->toGlobal(spj) - ib->Position();// -ib->toGlobal(kconst->sp_i());
+	rhs[srow + 2] = (v3.dot(v3f) - spi.dot(fi));
+	rhs[srow + 3] = (v3.dot(v3g) - spi.dot(gi));
+	rhs[srow + 4] = v3f.dot(epj.toGlobal(fj));
+}
+
 void translationalConstraint::constraintJacobian(SMATD& cjaco)
 {
 	if (ib->NumDOF() == DIM2)
@@ -92,6 +111,37 @@ void translationalConstraint::constraintJacobian(SMATD& cjaco)
 			cjaco.extraction(srow + 3, jcol + 0, POINTER(ib->toGlobal(gi)), POINTER(transpose(ib->toGlobal(gi), B(jb->getEP(), spj))), VEC3_4);
 			cjaco.extraction(srow + 4, jcol + 3, POINTER(transpose(ib->toGlobal(fi), B(jb->getEP(), fj))), VEC4);
 		}
+	}
+}
+
+void translationalConstraint::constraintJacobian(SMATD& cjaco, double* q, double* dq)
+{
+	int i = ib->ID() * 7;
+	int j = jb->ID() * 7;
+	VEC3D ri = i < 0 ? ib->Position() : VEC3D(q[i + 0], q[i + 1], q[i + 2]);
+	VEC3D rj = j < 0 ? jb->Position() : VEC3D(q[j + 0], q[j + 1], q[j + 2]);
+	EPD epi = i < 0 ? ib->getEP() : EPD(q[i + 3], q[i + 4], q[i + 5], q[i + 6]);
+	EPD epj = j < 0 ? jb->getEP() : EPD(q[j + 3], q[j + 4], q[j + 5], q[j + 6]);
+	VEC3D dij = (rj + epj.toGlobal(spj)) - (ri + epi.toGlobal(spi));
+	//qDebug() << "constraint : " << nm;
+	if (ib->MassType() != pointMass::GROUND)
+	{
+		//qDebug() << "i body : " << ib->Name();
+
+		cjaco.extraction(srow + 0, icol + 3, POINTER(transpose(epj.toGlobal(hj), B(epi, fi))), VEC4);
+		cjaco.extraction(srow + 1, icol + 3, POINTER(transpose(epj.toGlobal(hj), B(epi, gi))), VEC4);
+		cjaco.extraction(srow + 2, icol + 0, POINTER((-fi)), POINTER(transpose(dij + epi.toGlobal(spi), B(epi, fi))), VEC3_4);
+		cjaco.extraction(srow + 3, icol + 0, POINTER((-gi)), POINTER(transpose(dij + epi.toGlobal(spi), B(epi, gi))), VEC3_4);
+		cjaco.extraction(srow + 4, icol + 3, POINTER(transpose(epj.toGlobal(fj), B(epi, fi))), VEC4);
+	}
+	if (jb->MassType() != pointMass::GROUND)
+	{
+		//qDebug() << "j body : " << jb->Name();
+		cjaco.extraction(srow + 0, jcol + 3, POINTER(transpose(epi.toGlobal(fi), B(epj, hj))), VEC4);
+		cjaco.extraction(srow + 1, jcol + 3, POINTER(transpose(epi.toGlobal(gi), B(epj, hj))), VEC4);
+		cjaco.extraction(srow + 2, jcol + 0, POINTER(epi.toGlobal(fi)), POINTER(transpose(epi.toGlobal(fi), B(epj, spj))), VEC3_4);
+		cjaco.extraction(srow + 3, jcol + 0, POINTER(epi.toGlobal(gi)), POINTER(transpose(epi.toGlobal(gi), B(epj, spj))), VEC3_4);
+		cjaco.extraction(srow + 4, jcol + 3, POINTER(transpose(epi.toGlobal(fi), B(epj, fj))), VEC4);
 	}
 }
 

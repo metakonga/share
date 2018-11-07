@@ -97,6 +97,38 @@ void drivingConstraint::constraintEquation(double mul, double* rhs)
 	}
 }
 
+void drivingConstraint::constraintEquation(double *rhs, double* q, double* dq, double ct)
+{
+	pointMass* im = kconst->iMass();
+	pointMass* jm = kconst->jMass();
+	int i = im->ID() * 7;
+	int j = jm->ID() * 7;
+	double v = 0.0;
+	if (type == DRIVING_TRANSLATION)
+	{
+		VEC3D ri = i < 0 ? im->Position() : VEC3D(q[i + 0], q[i + 1], q[i + 2]);
+		VEC3D rj = j < 0 ? jm->Position() : VEC3D(q[j + 0], q[j + 1], q[j + 2]);
+		EPD epi = i < 0 ? im->getEP() : EPD(q[i + 3], q[i + 4], q[i + 5], q[i + 6]);
+		EPD epj = j < 0 ? jm->getEP() : EPD(q[j + 3], q[j + 4], q[j + 5], q[j + 6]);
+		VEC3D dist = (rj + epj.toGlobal(kconst->sp_j())) - (ri + epi.toGlobal(kconst->sp_i())); //kconst->CurrentDistance();
+		//VEC3D dist = kconst->CurrentDistance();
+		VEC3D hi = epi.toGlobal(kconst->h_i());
+		if (start_time > simulation::ctime + plus_time)
+			v = hi.dot(dist) - (init_v + 0.0 * simulation::ctime);
+		else
+			v = hi.dot(dist) - (init_v + cons_v * (simulation::ctime - start_time + plus_time));
+		rhs[srow] = v;
+	}
+	else if (type == DRIVING_ROTATION)
+	{
+		if (start_time > simulation::ctime + plus_time)
+			v = theta - (init_v + 0.0 * simulation::ctime);
+		else
+			v = theta - (init_v + cons_v * (simulation::ctime - start_time + plus_time));
+		rhs[srow] = v;
+	}
+}
+
 void drivingConstraint::constraintJacobian(SMATD& cjaco, double ct)
 {
 	if (type == DRIVING_TRANSLATION)
@@ -154,20 +186,86 @@ void drivingConstraint::constraintJacobian(SMATD& cjaco, double ct)
 	
 }
 
-void drivingConstraint::differentialEquation(double* q, double *dq, double *rhs)
+void drivingConstraint::constraintJacobian(SMATD& cjaco, double *q, double *dq, double ct)
 {
-	unsigned int i = kconst->iMass()->ID() * 7;
-	unsigned int j = kconst->jMass()->ID() * 7;
-	EPD pi(q[i + 3], q[i + 4], q[i + 5], q[i + 6]);
-	EPD pj(q[j + 3], q[j + 4], q[j + 5], q[j + 6]);
-	EPD dpi(dq[i + 3], dq[i + 4], dq[i + 5], dq[i + 6]);
-	EPD dpj(dq[j + 3], dq[j + 4], dq[j + 5], dq[j + 6]);
+	pointMass* im = kconst->iMass();
+	pointMass* jm = kconst->jMass();
+	int i = im->ID() * 7;
+	int j = jm->ID() * 7;
 	if (type == DRIVING_TRANSLATION)
 	{
-		VEC3D ri(q[i + 0], q[i + 1], q[i + 2]);
-		VEC3D rj(q[j + 0], q[j + 1], q[j + 2]);
-		VEC3D dri(dq[i + 0], dq[i + 1], dq[i + 2]);
-		VEC3D drj(dq[j + 0], dq[j + 1], dq[j + 2]);
+		VEC3D ri = i < 0 ? im->Position() : VEC3D(q[i + 0], q[i + 1], q[i + 2]);
+		VEC3D rj = j < 0 ? jm->Position() : VEC3D(q[j + 0], q[j + 1], q[j + 2]);
+		EPD epi = i < 0 ? im->getEP() : EPD(q[i + 3], q[i + 4], q[i + 5], q[i + 6]);
+		EPD epj = j < 0 ? jm->getEP() : EPD(q[j + 3], q[j + 4], q[j + 5], q[j + 6]);
+		VEC3D fdij = (rj + epj.toGlobal(kconst->sp_j())) - (ri + epi.toGlobal(kconst->sp_i())); //kconst->CurrentDistance();
+		VEC3D hi = epi.toGlobal(kconst->h_i());
+		VEC3D D1;
+		VEC4D D2;
+		int ic = kconst->iColumn();
+		int jc = kconst->jColumn();
+		if (im->MassType() != pointMass::GROUND)
+		{
+			D1 = -hi;
+			D2 = transpose(fdij, B(epi, kconst->h_i())) - transpose(hi, B(epi, kconst->sp_i()));
+			cjaco.extraction(srow, ic, POINTER(D1), POINTER(D2), VEC3_4);
+		}
+		if (jm->MassType() != pointMass::GROUND)
+		{
+			D1 = hi;
+			transpose(hi, B(epj, kconst->sp_j()));
+			cjaco.extraction(srow, jc, POINTER(D1), POINTER(D2), VEC3_4);
+		}
+	}
+	else if (type == DRIVING_ROTATION)
+	{
+// 		pointMass* im = kconst->iMass();
+// 		pointMass* jm = kconst->jMass();
+		EPD epi = i < 0 ? im->getEP() : EPD(q[i + 3], q[i + 4], q[i + 5], q[i + 6]);
+		EPD epj = j < 0 ? jm->getEP() : EPD(q[j + 3], q[j + 4], q[j + 5], q[j + 6]);
+		int ic = kconst->iColumn();
+		int jc = kconst->jColumn();
+		VEC3D fi = epi.toGlobal(kconst->f_i());
+		VEC3D fj = epj.toGlobal(kconst->f_j());
+		VEC3D gi = epi.toGlobal(kconst->g_i());
+		double stheta = acos(fi.dot(fj));
+		double prad = 0.0;
+		// 		qDebug() << "start_time : " << start_time;
+		// 		qDebug() << "simulation_time : " << simulation::ctime;
+		if (start_time > ct + plus_time)
+			prad = init_v + 0.0 * ct;
+		else
+			prad = init_v + cons_v * (ct - start_time + plus_time);
+		if (prad > M_PI)
+			stheta = stheta;
+		//	qDebug() << "prad : " << prad;
+		theta = numeric::utility::angle_coefficient(prad, stheta);
+		VEC3D zv;
+		VEC4D D1 = transpose(fj, cos(theta) * B(epi, kconst->g_i()));
+		VEC4D D2 = transpose((cos(theta) * gi - sin(theta) * fi), B(epj, kconst->f_j()));
+		if (im->MassType() != pointMass::GROUND)
+			cjaco.extraction(srow, ic, POINTER(zv), POINTER(D1), VEC3_4);
+		if (jm->MassType() != pointMass::GROUND)
+			cjaco.extraction(srow, jc, POINTER(zv), POINTER(D2), VEC3_4);
+	}
+}
+
+void drivingConstraint::differentialEquation(double* q, double *dq, double *rhs)
+{
+	pointMass* im = kconst->iMass();
+	pointMass* jm = kconst->jMass();
+	int i = im->ID() * 7;
+	int j = jm->ID() * 7;
+	EPD pi = i < 0 ? im->getEP() : EPD(q[i + 3], q[i + 4], q[i + 5], q[i + 6]);
+	EPD pj = j < 0 ? jm->getEP() : EPD(q[j + 3], q[j + 4], q[j + 5], q[j + 6]);
+	EPD dpi = i < 0 ? im->getEV() : EPD(dq[i + 3], dq[i + 4], dq[i + 5], dq[i + 6]);
+	EPD dpj = j < 0 ? jm->getEV() : EPD(dq[j + 3], dq[j + 4], dq[j + 5], dq[j + 6]);
+	if (type == DRIVING_TRANSLATION)
+	{
+		VEC3D ri = i < 0 ? im->Position() : VEC3D(q[i + 0], q[i + 1], q[i + 2]);
+		VEC3D rj = j < 0 ? jm->Position() : VEC3D(q[j + 0], q[j + 1], q[j + 2]);
+		VEC3D dri = i < 0 ? im->getVelocity() : VEC3D(dq[i + 0], dq[i + 1], dq[i + 2]);
+		VEC3D drj = j < 0 ? jm->getVelocity() : VEC3D(dq[j + 0], dq[j + 1], dq[j + 2]);
 		VEC3D dij = rj + pj.toGlobal(kconst->sp_j()) - ri - pi.toGlobal(kconst->sp_i());
 		VEC3D spi = kconst->sp_i();
 		VEC3D spj = kconst->sp_j();
