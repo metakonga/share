@@ -79,6 +79,10 @@ namespace algebra
 		vector3<int> operator* (int sv, vector3<int> vv){
 		return vector3<int>(sv * vv.x, sv * vv.y, sv * vv.z);
 	}
+	inline
+		vector3<unsigned int> operator* (unsigned int sv, vector3<unsigned int> vv){
+		return vector3<unsigned int>(sv * vv.x, sv * vv.y, sv * vv.z);
+	}
 // 	vector3<double> operator* (double sv, vector3<double>& vv){
 // 		return vector3<double>(sv * vv.x, sv * vv.y, sv * vv.z);
 // 	}
