@@ -109,7 +109,7 @@ enum kernel_type{ CUBIC_SPLINE = 0, QUADRATIC, QUINTIC, WENDLAND, GAUSS, MODIFIE
 enum boundary_type{ DUMMY_PARTICLE_METHOD };
 enum import_shape_type { NO_SUPPORT_FORMAT = 0, MILKSHAPE_3D_ASCII, STL_ASCII };
 enum context_object_type{ VIEW_OBJECT = 0, GEOMETRY_OBJECT, CONSTRAINT_OBJECT, CONTACT_OBJECT };
-enum context_menu{ CONTEXT_PROPERTY = 0, CONTEXT_REFINEMENT };
+enum context_menu{ CONTEXT_PROPERTY = 0, CONTEXT_REFINEMENT, CONTEXT_MOTION_CONDITION };
 
 typedef struct 
 {
@@ -126,6 +126,15 @@ typedef struct
 	double pri, prj;
 	double Gi, Gj;
 }material_property_pair;
+
+typedef struct  
+{
+	bool enable;
+	double st;
+	double et;
+	double cv;
+	VEC3D unit;
+}geometry_motion_condition;
 
 typedef struct
 {
@@ -196,6 +205,20 @@ typedef struct
 
 typedef struct
 {
+	double l1, l2;
+	VEC3D u1;
+	VEC3D u2;
+	VEC3D uw;
+	VEC3D xw;
+	VEC3D pa;
+	VEC3D pb;
+	VEC3D w2;
+	VEC3D w3;
+	VEC3D w4;
+}host_plane_info;
+
+typedef struct
+{
 	int id;
 	VEC3D P;
 	VEC3D Q;
@@ -241,6 +264,12 @@ typedef struct
 	double time;
 	double value;
 }time_double;
+
+typedef struct  
+{
+	VEC3D p;
+	EPD ep;
+}geometry_motion_result;
 
 typedef struct
 {

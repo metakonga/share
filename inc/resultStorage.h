@@ -52,6 +52,7 @@ public:
 	void insertPointMassResult(QString& nm, pointMassResultData& pmrd);
 	void insertReactionForceResult(QString& nm, reactionForceData& rfd);
 	void insertTimeDoubleResult(QString& nm, time_double& td);
+	void insertGeometryObjectResult(QString& nm, geometry_motion_result& gmr);
 	void definePartDatasSPH(bool isOnlyCountNumPart, int idx = -1);
 	void definePartDatasDEM(bool isOnlyCountNumPart, int idx = -1);
 	void setInformationSPH(unsigned int _np, unsigned int _nf, unsigned int _nft, unsigned int _nb, unsigned int _nd);
@@ -81,6 +82,7 @@ public:
 	QMap<QString, QList<pointMassResultData>>& pointMassResults() { return pmrs; }
 	QMap<QString, QList<reactionForceData>>& reactionForceResults() { return rfrs; }
 	QMap<QString, QList<time_double>>& timeDoubleResults() { return tds; }
+	QMap<QString, QList<geometry_motion_result>>& geometryMotionResults() { return gmrs; }
 
 private:
 	bool isAllocMemory;
@@ -115,6 +117,7 @@ private:
 	QMap<QString, QList<pointMassResultData>> pmrs;
 	QMap<QString, QList<reactionForceData>> rfrs;
 	QMap<QString, QList<time_double>> tds;
+	QMap<QString, QList<geometry_motion_result>> gmrs;
 
 	//QMap<QString, pointMassResultData*> pmrd;
 

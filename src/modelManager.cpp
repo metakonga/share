@@ -50,12 +50,14 @@ void modelManager::SaveCurrentModel()
 	qf.close();
 }
 
-void modelManager::OpenModel(QString file_path)
+QString modelManager::OpenModel(QString file_path)
 {
 	QFile qf(file_path);
 	qf.open(QIODevice::ReadOnly);
 	QTextStream qts(&qf);
 	QString ch;
+	QString log;
+	QTextStream log_qts(&log);
 	while (!qts.atEnd())
 	{
 		qts >> ch;
@@ -70,11 +72,10 @@ void modelManager::OpenModel(QString file_path)
 			qts >> ch >> iss;
 			model::isSinglePrecision = iss;
 			model::unit = (unit_type)unit;
+			log_qts << "Model name : " << ch << ", Gravity : " + QString("[%1, %2, %3]").arg(model::gravity.x).arg(model::gravity.y).arg(model::gravity.z) << "\n";
 		}
 		else if (ch == "DEM_MODEL_DATA")
 		{
-			//qts >> ch >> ch;
-		//	model::setModelName(ch);
 			CreateModel(model::name, DEM, true);
 			dem->Open(qts);
 		}
@@ -82,11 +83,12 @@ void modelManager::OpenModel(QString file_path)
 		{
 			particleManager* pm = dem->CreateParticleManager();
 			pm->Open(qts);
+			log_qts << "The number of particles : " << pm->Np() << "\n";
 		}
 		else if (ch == "GEOMETRY_OBJECTS_DATA")
 		{
 			CreateModel(model::name, OBJECTS, true);
-			obj->Open(qts);
+			log_qts << obj->Open(qts);
 		}
 		else if (ch == "CONTACT_ELEMENTS_DATA")
 		{
@@ -97,13 +99,11 @@ void modelManager::OpenModel(QString file_path)
 		{
 			qts >> ch;
 			CreateModel(model::name, MBD, true);
-// 			if (ch == "END_DATA")
-// 				return;
 			mbd->setMBDModelName(ch);
 			mbd->Open(qts);
 		}
-
 	}
+	return log;
 }
 
 void modelManager::ActionDelete(QString target)

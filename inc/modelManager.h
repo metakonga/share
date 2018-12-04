@@ -22,7 +22,7 @@ public:
 	static modelManager* MM();
 
 	void SaveCurrentModel();
-	void OpenModel(QString file_path);
+	QString OpenModel(QString file_path);
 	void ActionDelete(QString target);
 	void CreateModel(QString& n, modelType t, bool isOnAir = false);
 	//void CreateContactPair(QString n, int method, QString fo, QString so, double rest, double ratio, double fric);

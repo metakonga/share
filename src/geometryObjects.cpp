@@ -24,9 +24,11 @@ void geometryObjects::Save(QTextStream& qts)
 	qts << "END_DATA" << endl;	
 }
 
-void geometryObjects::Open(QTextStream& qts)
+QString geometryObjects::Open(QTextStream& qts)
 {
 	QString ch;
+	QString log;
+	QTextStream log_qts(&log);
 	while (ch != "END_DATA")
 	{
 		qts >> ch;
@@ -87,13 +89,15 @@ void geometryObjects::Open(QTextStream& qts)
 				>> ch >> tt >> ch >> v;
 			vpolygon* vp = GLWidget::GLObject()->makePolygonObject(_name, (import_shape_type)ist, file, loc.x, loc.y, loc.z);
 			if (tt == "poly_refinement" && v)
-				polyRefinement(ch, v);// ->splitTriangle(v);
+				log_qts << polyRefinement(ch, v) << "\n";// ->splitTriangle(v);
 			makePolygonObject(
 				_name, (geometry_use)gu, file, (import_shape_type)ist,loc,
 				vp->NumTriangles(), vp->VertexList(), vp->IndexList(),
 				(material_type)mt, e, p, d, s);
+			//log_qts << "Object name : " << _name << ", the number of triangles : " <<  
 		}
 	}
+	return log;
 }
 
 void geometryObjects::insertObject(object* _obj)

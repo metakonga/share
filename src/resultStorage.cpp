@@ -289,6 +289,11 @@ void resultStorage::insertTimeDoubleResult(QString& nm, time_double& td)
 	tds[nm].push_back(td);// td;
 }
 
+void resultStorage::insertGeometryObjectResult(QString& nm, geometry_motion_result& gmr)
+{
+	gmrs[nm].push_back(gmr);
+}
+
 void resultStorage::definePartDatasSPH(bool isOnlyCountNumPart, int index)
 {
 	unsigned int _np = np;

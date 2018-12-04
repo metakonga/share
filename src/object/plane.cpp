@@ -69,7 +69,7 @@ bool plane::define(VEC3D& _xw, VEC3D& _pa, VEC3D& _pc, VEC3D& _pb)
 	u1 = pa / l1;
 	u2 = pb / l2;
 	uw = u1.cross(u2);
-	pointMass::pos = xw + (l1 * u1) + (l2 * u2);
+	pointMass::pos = 0.5 * (_xw + _pc);
 	nPlane++;
 
 	return true;
@@ -90,4 +90,18 @@ bool plane::define(VEC3D& _xw, VEC3D& _pa, VEC3D& _pb)
 	uw = u1.cross(u2);
 
 	return true;
+}
+
+void plane::UpdateGeometryMotion(double ct)
+{
+	xw = xw + gmc.cv * ct * gmc.unit;
+	w2 = w2 + gmc.cv * ct * gmc.unit;
+	w3 = w3 + gmc.cv * ct * gmc.unit;
+	w4 = w4 + gmc.cv * ct * gmc.unit;
+	pa = w2 - xw;
+	pb = w4 - xw;
+	u1 = pa / l1;
+	u2 = pb / l2;
+	uw = u1.cross(u2);
+	pos = pos + gmc.cv * ct * gmc.unit;
 }

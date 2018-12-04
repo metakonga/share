@@ -65,7 +65,7 @@ public:
 	artificialCoordinate* createArtificialCoordinate(QString _nm);
 	drivingConstraint* createDrivingConstraint(
 		QString _nm, kinematicConstraint* _kin, drivingConstraint::Type _tp,
-		double iv, double cv);
+		double iv, double cv, double st = 0.0);
 
 	contactPair* createContactPair(QString _nm, pointMass* ib, pointMass* jb);
 

@@ -27,6 +27,9 @@ public:
 	double Poisson() const { return p; }
 	double Shear() const { return sm; }
 	unsigned int particleCount() const { return count; }
+	geometry_motion_condition MotionCondition() const { return gmc; }
+	void setMotionCondition(double st, double et, double cv, VEC3D u);
+	
 	void setViewObject(vobject* vo) { vobj = vo; }
 	void setViewMarker(vobject* vm) { marker = vm; }
 	vobject* ViewObject() { return vobj; }
@@ -44,6 +47,7 @@ public:
 	VEC3D SymetricInertia0() { return sym_iner0; }
 
 	virtual void saveData(QTextStream& ts) {};
+	virtual void UpdateGeometryMotion(double ct) {};
 
 protected:
 	static unsigned int count;
@@ -64,6 +68,8 @@ protected:
 
 	vobject* vobj;
 	vobject* marker;
+
+	geometry_motion_condition gmc;
 };
 
 #endif

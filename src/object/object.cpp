@@ -21,7 +21,7 @@ object::object()
 	, vobj(NULL)
 	, marker(NULL)
 {
-
+	gmc.enable = false;
 }
 
 object::object(QString _name, geometry_type _tobj, geometry_use _roll)
@@ -40,6 +40,7 @@ object::object(QString _name, geometry_type _tobj, geometry_use _roll)
 	, marker(NULL)
 {
 	id = count++;
+	gmc.enable = false;
 }
 
 object::object(const object& obj)
@@ -52,6 +53,7 @@ object::object(const object& obj)
 	, y(obj.Youngs())
 	, p(obj.Poisson())
 	, sm(obj.Shear())
+	, gmc(obj.MotionCondition())
 {
 
 }
@@ -59,6 +61,15 @@ object::object(const object& obj)
 object::~object()
 {
 
+}
+
+void object::setMotionCondition(double st, double et, double cv, VEC3D u)
+{
+	gmc.enable = true;
+	gmc.st = st;
+	gmc.et = et;
+	gmc.cv = cv;
+	gmc.unit = u;
 }
 
 void object::updateView(VEC3D p, VEC3D r)

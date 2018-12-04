@@ -16,7 +16,7 @@ public:
 	~geometryObjects();
 
 	void Save(QTextStream& qts);
-	void Open(QTextStream& qts);
+	QString Open(QTextStream& qts);
 	void insertObject(object* _obj);
 	QMap<QString, object*>& Objects() { return objs; }
 	QMap<QString, QString>& Logs() { return logs; }

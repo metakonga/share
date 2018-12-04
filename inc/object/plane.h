@@ -26,8 +26,11 @@ public:
 	VEC3D W2() const { return w2; }
 	VEC3D W3() const { return w3; }
 	VEC3D W4() const { return w4; }
+	VEC3D MinPoint() const { return minp; }
+	VEC3D MaxPoint() const { return maxp; }
 
 	static unsigned int Number() { return nPlane; }
+	virtual void UpdateGeometryMotion(double ct);
 
 private:
 	static unsigned int nPlane;

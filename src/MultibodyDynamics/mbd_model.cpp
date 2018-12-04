@@ -253,21 +253,22 @@ axialRotationForce* mbd_model::createAxialRotationForce(QTextStream& qts)
 }
 
 drivingConstraint* mbd_model::createDrivingConstraint(
-	QString _nm, kinematicConstraint* _kin, drivingConstraint::Type _tp, double iv, double cv)
+	QString _nm, kinematicConstraint* _kin, drivingConstraint::Type _tp, double iv, double cv, double st)
 {
 	drivingConstraint *dc = new drivingConstraint(_nm);
 	dc->define(_kin, _tp, iv, cv);
+	dc->setStartTime(st);
 	drivings[_nm] = dc;
-	QString log;
-	QTextStream qts(&log);
-	qts << "ELEMENT " << "driving_constraint" << endl
-		<< "NAME " << _nm << endl
-		<< "TARGET_JOINT " << _kin->name() << endl
-		<< "DRIVING_TYPE " << (int)_tp << endl
-		<< "INITIAL_VALUE " << iv << endl
-		<< "CONSTANT_VALUE " << cv << endl;
-		//<< "STARTING_TIME " << 
-	other_logs[_nm] = log;
+// 	QString log;
+// 	QTextStream qts(&log);
+// 	qts << "ELEMENT " << "driving_constraint" << endl
+// 		<< "NAME " << _nm << endl
+// 		<< "TARGET_JOINT " << _kin->name() << endl
+// 		<< "DRIVING_TYPE " << (int)_tp << endl
+// 		<< "INITIAL_VALUE " << iv << endl
+// 		<< "CONSTANT_VALUE " << cv << endl
+// 		<< "STARTING_TIME " << st << endl;
+	//other_logs[_nm] = log;
 	return dc;
 }
 
@@ -451,14 +452,14 @@ void mbd_model::Open(QTextStream& qts)
 			QString _name, target;
 			int tp;
 			double iv, cv, st;
-			qts >> ch >> _name 
-				>> ch >> tp 
+			qts >> ch >> _name
+				>> ch >> tp
 				>> ch >> target
-				>> ch >> st 
+				>> ch >> st
 				>> ch >> iv >> cv;
 			kinematicConstraint *kc = kinConstraint(target);
-			drivingConstraint *dc = createDrivingConstraint(_name, kc, (drivingConstraint::Type)tp, iv, cv);
-			dc->setStartTime(st);
+			drivingConstraint *dc = createDrivingConstraint(_name, kc, (drivingConstraint::Type)tp, iv, cv, st);
+			//dc->setStartTime(st);
 
 		}
 		else if (ch == "tsda")
@@ -511,8 +512,8 @@ void mbd_model::Save(QTextStream& qts)
 // // 	}
 // 	foreach(forceElement* fe, forces)
 // 		fe->saveData(qts);
-// 	foreach(drivingConstraint* dc, drivings)
-// 		dc->saveData(qts);
+	foreach(drivingConstraint* dc, drivings)
+		dc->saveData(qts);
 // 	foreach(QString log, body_logs)
 // 	{
 // 		qts << log;

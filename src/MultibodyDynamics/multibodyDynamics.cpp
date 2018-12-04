@@ -15,6 +15,7 @@ multibodyDynamics::multibodyDynamics()
 	, mdim(0)
 	, outCount(0)
 	, itor_type(MBD_INTEGRATOR)
+	, n_NR_iteration(0)
 	//, permutation(NULL)
 {
 
@@ -25,6 +26,7 @@ multibodyDynamics::multibodyDynamics(mbd_model *_md)
 	, mdim(0)
 	, outCount(0)
 	, itor_type(MBD_INTEGRATOR)
+	, n_NR_iteration(0)
 	//, permutation(NULL)
 {
 	//ground.setID(-1);
@@ -666,6 +668,11 @@ void multibodyDynamics::saveFinalResult(QFile& qf)
 	}
 	qf.write((char*)&tdim, sizeof(unsigned int));
 	qf.write((char*)rhs.get_ptr(), sizeof(double) * tdim);
+}
+
+unsigned int multibodyDynamics::N_NR_Iteration()
+{
+	return n_NR_iteration;
 }
 
 int multibodyDynamics::oneStepAnalysis(double ct, unsigned int cstep)
