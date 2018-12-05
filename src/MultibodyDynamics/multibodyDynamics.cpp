@@ -691,7 +691,10 @@ int multibodyDynamics::oneStepAnalysis(double ct, unsigned int cstep)
 			hm->RunMovement(ct);
 		}
 		if (!hardMoving::IsOver())
+		{
+			ret = 1;
 			break;
+		}			
 		prediction(cstep);
 		ret = correction(cstep);
 		break;
