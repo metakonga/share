@@ -10,7 +10,7 @@ geometryObjects::geometryObjects()
 
 geometryObjects::~geometryObjects()
 {
-	qDeleteAll(markers);
+	qDeleteAll(objs);
 }
 
 void geometryObjects::Save(QTextStream& qts)

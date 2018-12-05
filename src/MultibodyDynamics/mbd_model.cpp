@@ -44,6 +44,7 @@ mbd_model::~mbd_model()
 {
 	if (ground) delete ground; ground = NULL;
 	//qDeleteAll(masses);
+	qDeleteAll(drivings);
 	qDeleteAll(consts);
 	qDeleteAll(forces);
 }
@@ -259,16 +260,6 @@ drivingConstraint* mbd_model::createDrivingConstraint(
 	dc->define(_kin, _tp, iv, cv);
 	dc->setStartTime(st);
 	drivings[_nm] = dc;
-// 	QString log;
-// 	QTextStream qts(&log);
-// 	qts << "ELEMENT " << "driving_constraint" << endl
-// 		<< "NAME " << _nm << endl
-// 		<< "TARGET_JOINT " << _kin->name() << endl
-// 		<< "DRIVING_TYPE " << (int)_tp << endl
-// 		<< "INITIAL_VALUE " << iv << endl
-// 		<< "CONSTANT_VALUE " << cv << endl
-// 		<< "STARTING_TIME " << st << endl;
-	//other_logs[_nm] = log;
 	return dc;
 }
 
@@ -344,7 +335,7 @@ pointMass* mbd_model::createPointMass(
 	rb->setEP(ep);
 	rb->setViewMarker(GLWidget::GLObject()->makeMarker(_name, p));
 	masses[_name] = rb;
-	//modelManager::MM()->GeometryObject()->addMarkerObject(rb);
+	modelManager::MM()->GeometryObject()->insertObject(rb);
 	database::DB()->addChild(database::RIGID_BODY_ROOT, _name);
 	
 	QString log;
@@ -410,30 +401,6 @@ void mbd_model::Open(QTextStream& qts)
 			}
 				
 		}
-// 		if ((pointMass::Type)tp == pointMass::POLYMER)
-// 		{
-// 			QString _name;
-// 			int mt;
-// 			double mass;
-// 			VEC3D p, piner, siner;
-// 			EPD ep;
-// 			qts >> ch >> _name
-// 				>> ch >> mass
-// 				>> ch >> mt
-// 				>> ch >> p.x >> p.y >> p.z
-// 				>> ch >> ep.e0 >> ep.e1 >> ep.e2 >> ep.e3
-// 				>> ch >> piner.x >> piner.y >> piner.z
-// 				>> ch >> siner.x >> siner.y >> siner.z;
-// 			pointMass* pm = dynamic_cast<pointMass*>(modelManager::MM()->GeometryObject()->Object(_name));
-// 			pm->setMass(mass);
-// 			pm->setPosition(p);
-// 			pm->setEP(ep);
-// 			pm->setDiagonalInertia(piner.x, piner.y, piner.z);
-// 			pm->setSymetryInertia(siner.x, siner.y, siner.z);
-// 			GLWidget::GLObject()->Objects()[pm->Name()]->setInitialPosition(pm->Position());
-// 			insertPointMass(pm);
-// 		//	createRigidBody(_name, mass, piner, siner, p, ep);
-// 		}
 		else if (ch == "constraint")
 		{
 			QString _name, ib, jb;
