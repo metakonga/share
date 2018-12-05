@@ -686,6 +686,12 @@ int multibodyDynamics::oneStepAnalysis(double ct, unsigned int cstep)
 		ret = runke_kutta_method(cstep);
 		break;
 	default:
+		foreach(hardMoving* hm, md->hardMovings())
+		{
+			hm->RunMovement(ct);
+		}
+		if (!hardMoving::IsOver())
+			break;
 		prediction(cstep);
 		ret = correction(cstep);
 		break;

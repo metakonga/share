@@ -47,6 +47,7 @@ mbd_model::~mbd_model()
 	qDeleteAll(drivings);
 	qDeleteAll(consts);
 	qDeleteAll(forces);
+	qDeleteAll(hms);
 }
 
 kinematicConstraint* mbd_model::createKinematicConstraint(
@@ -273,6 +274,14 @@ contactPair* mbd_model::createContactPair(
 	return cp;
 }
 
+hardMoving* mbd_model::createHardMoving(QString _nm, pointMass* tg, hardMoving::Type tp, VEC3D dir, double et, double v)
+{
+	hardMoving* hm = new hardMoving(_nm);
+	hm->Define(tp, tg, dir, et, v);
+	hms[_nm] = hm;
+	return hm;
+}
+
 void mbd_model::set2D_Mode(bool b)
 {
 	is2D = b;
@@ -453,6 +462,21 @@ void mbd_model::Open(QTextStream& qts)
 				>> ch >> fr;
 			createAxialRotationForce(_name, masses[ib], masses[jb], loc, dir, fr);
 		}
+		else if (ch == "hard_moving")
+		{
+			QString _name, tg;
+			VEC3D dir;
+			double et, v;
+			int tp;
+			qts >> ch >> _name
+				>> ch >> tg
+				>> ch >> tp
+				>> ch >> et
+				>> ch >> dir.x >> dir.y >> dir.z
+				>> ch >> v;
+			pointMass* _pm = masses[tg];
+			createHardMoving(_name, _pm, (hardMoving::Type)tp, dir, et, v);
+		}
 	}
 }
 
@@ -481,6 +505,8 @@ void mbd_model::Save(QTextStream& qts)
 // 		fe->saveData(qts);
 	foreach(drivingConstraint* dc, drivings)
 		dc->saveData(qts);
+	foreach(hardMoving* hm, hms)
+		hm->Save(qts);
 // 	foreach(QString log, body_logs)
 // 	{
 // 		qts << log;

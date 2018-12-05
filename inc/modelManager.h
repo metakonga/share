@@ -8,6 +8,7 @@
 #include "particleManager.h"
 #include "contactManager.h"
 
+
 #include "FullCarModel.hpp"
 #include "SliderCrank3D.hpp"
 #include "test_model.hpp"
@@ -57,6 +58,7 @@ private:
 	QMap<QString, dem_model*> dems;
 	QMap<QString, mbd_model*> mbds;
 	QMap<QString, contactManager*> contacts;
+	
 	//QMap<QString, particleManager*> pms;
 
 	geometryObjects* obj;

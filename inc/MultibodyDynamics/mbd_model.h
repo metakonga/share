@@ -14,6 +14,7 @@
 #include "model.h"
 #include "algebraMath.h"
 #include "contactPair.h"
+#include "hardMoving.h"
 
 class forceElement;
 class axialRotationForce;
@@ -68,6 +69,7 @@ public:
 		double iv, double cv, double st = 0.0);
 
 	contactPair* createContactPair(QString _nm, pointMass* ib, pointMass* jb);
+	hardMoving* createHardMoving(QString _nm, pointMass* tg, hardMoving::Type tp, VEC3D dir, double et, double v);
 
 	void set2D_Mode(bool b);
 	bool mode2D();
@@ -84,6 +86,7 @@ public:
 	QMap<QString, gearConstraint*>& gearConstraints() { return gears; }
 	QMap<QString, artificialCoordinate*>& artificialCoordinates() { return acoordinates; }
 	QMap<QString, drivingConstraint*>& drivingConstraints() { return drivings; }
+	QMap<QString, hardMoving*>& hardMovings() { return hms; }
 
 	void Open(QTextStream& qts);
 	void Save(QTextStream& qts);
@@ -121,6 +124,7 @@ protected:
 	QMap<QString, artificialCoordinate*> acoordinates;
 	QMap<QString, contactPair*> cpairs;
 	QMap<QString, drivingConstraint*> drivings;
+	QMap<QString, hardMoving*> hms;
 };
 
 #endif
