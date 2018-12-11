@@ -4,6 +4,7 @@
 #include "linearSolver.hpp"
 #include "numeric_utility.h"
 #include "errors.h"
+#include "eventTrigger.h"
 #include <QDebug>
 #include <QTime>
 #include <QTextStream>
@@ -680,16 +681,29 @@ int multibodyDynamics::oneStepAnalysis(double ct, unsigned int cstep)
 	int ret = 0;
 	if (ct < simulation::start_time)
 		return -1;
+// 	double fz_c = 0.0;
+// 	double fz_g = 0.0;
 	switch (itor_type)
 	{
 	case EXPLICIT_RUNGE_KUTTA:
 		ret = runke_kutta_method(cstep);
 		break;
 	default:
+// 		fz_c = md->pointMasses()["wheel_final"]->getCollisionForce().z;
+// 		fz_g = 20.8 * 9.80665;
+// 		qDebug() << fz_c;
+// 		if (md->hardMovings().size() && (fz_c >= fz_g))
+// 		{
+// 			hardMoving::SetOver(true);
+// 			md->DeleteHardMovings();
+// 			event_trigger::TriggerEvent("Hard movings are deleted.");
+// 		}			
+// 		else
+// 		{
 		foreach(hardMoving* hm, md->hardMovings())
-		{
 			hm->RunMovement(ct);
-		}
+		//}
+		
 		if (!hardMoving::IsOver())
 		{
 			ret = 1;

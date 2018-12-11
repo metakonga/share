@@ -580,7 +580,7 @@ void resultStorage::exportEachResult2TXT(QString path)
 		}
 		qf.close();
 	}
-	qts_list << "particle_result " << pList.size() << np << isSingle << endl;
+	qts_list << "particle_result " << pList.size() << " " << np << " "  << isSingle << endl;
 	foreach(QString n, pList)
 	{
 		qts_list << "part_result_list " << n << endl;
@@ -588,20 +588,22 @@ void resultStorage::exportEachResult2TXT(QString path)
 	qf_list.close();
 }
 
-void resultStorage::openResultList(QString f)
+unsigned int resultStorage::openResultList(QString f)
 {
 	QFile qf(f);
 	qf.open(QIODevice::ReadOnly);
 	QTextStream qts(&qf);
 	QString ch;
 	unsigned int pt = 0;
-	while (!qf.atEnd())
+	while (!qts.atEnd())
 	{
 		qts >> ch;
 		if (ch == "point_mass_result")
 		{
 			qts >> ch;
 			QFile pmr(ch);
+			if (!pmr.isOpen())
+				continue;
 			int begin = ch.lastIndexOf("/");
 			int end = ch.lastIndexOf(".");
 			QString fn = ch.mid(begin + 1, end - begin);
@@ -641,6 +643,7 @@ void resultStorage::openResultList(QString f)
 		}
 	}
 	qf.close();
+	return pList.size();
 }
 
 QMap<QString, QList<VEC3D>>& resultStorage::linePointResults()

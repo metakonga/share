@@ -367,6 +367,12 @@ pointMass* mbd_model::Ground()
 	return ground;
 }
 
+void mbd_model::DeleteHardMovings()
+{
+	qDeleteAll(hms);
+	hms.clear();
+}
+
 void mbd_model::Open(QTextStream& qts)
 {
 	QString ch;

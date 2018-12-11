@@ -75,7 +75,7 @@ public:
 	void openSphResultFiles(QStringList& slist);
 	void insertDataSPH(particle_type* tp, double* _p, double* _v, double* _prs, bool isCalcContour = false);
 	void exportEachResult2TXT(QString path);
-	void openResultList(QString f);
+	unsigned int openResultList(QString f);
 
 	QMap<QString, QList<VEC3D>>& linePointResults();
 	QStringList& partList();

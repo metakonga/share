@@ -1,7 +1,7 @@
 #include "hardMoving.h"
 #include "pointMass.h"
 
-bool hardMoving::isOver = false;
+bool hardMoving::isOver = true;
 
 hardMoving::hardMoving(QString nm)
 	: name(nm)
@@ -27,7 +27,7 @@ void hardMoving::RunMovement(double ct)
 		case CONSTANT_VELOCITY_MOVING:
 			new_p = init_p + ct * value * direction;
 			target->setPosition(new_p);
-			//target->setVelocity(value * direction);
+			target->setVelocity(value * direction);
 			break;
 		}
 		isOver = false;

@@ -88,6 +88,8 @@ public:
 	QMap<QString, drivingConstraint*>& drivingConstraints() { return drivings; }
 	QMap<QString, hardMoving*>& hardMovings() { return hms; }
 
+	void DeleteHardMovings();
+
 	void Open(QTextStream& qts);
 	void Save(QTextStream& qts);
 

@@ -18,6 +18,7 @@ public:
 	void RunMovement(double ct);
 	void Save(QTextStream& qts);
 	static bool IsOver() { return isOver; }
+	static void SetOver(bool b) { isOver = b; }
 
 private:
 	static bool isOver;
